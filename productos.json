@@ -1,0 +1,74 @@
+[
+  {
+    "id": "p1",
+    "name": "Coca-Cola 500ml",
+    "category": "Bebidas",
+    "cost": 800,
+    "price": 1500,
+    "stock": 25,
+    "minStock": 5
+  },
+  {
+    "id": "p2",
+    "name": "Agua Mineral 500ml",
+    "category": "Bebidas",
+    "cost": 500,
+    "price": 1000,
+    "stock": 30,
+    "minStock": 6
+  },
+  {
+    "id": "p3",
+    "name": "Cerveza Heineken 1L",
+    "category": "Bebidas",
+    "cost": 1500,
+    "price": 2800,
+    "stock": 12,
+    "minStock": 4
+  },
+  {
+    "id": "p4",
+    "name": "Hamburguesa Completa",
+    "category": "Comidas",
+    "cost": 1800,
+    "price": 3500,
+    "stock": 10,
+    "minStock": 2
+  },
+  {
+    "id": "p5",
+    "name": "Tostado Jamón y Queso",
+    "category": "Comidas",
+    "cost": 1000,
+    "price": 2000,
+    "stock": 8,
+    "minStock": 3
+  },
+  {
+    "id": "p6",
+    "name": "Papas Fritas Porción",
+    "category": "Comidas",
+    "cost": 800,
+    "price": 1800,
+    "stock": 15,
+    "minStock": 3
+  },
+  {
+    "id": "p7",
+    "name": "Alfajor Triple",
+    "category": "Kiosco",
+    "cost": 400,
+    "price": 800,
+    "stock": 45,
+    "minStock": 8
+  },
+  {
+    "id": "p8",
+    "name": "Papas Lays Clásicas",
+    "category": "Kiosco",
+    "cost": 600,
+    "price": 1200,
+    "stock": 15,
+    "minStock": 4
+  }
+]

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wadasaka Club - Administración</title>
+    <meta name="description" content="Panel de administración integrado para Wadasaka Club. Gestión de canchas, buffet y caja.">
+    <link rel="stylesheet" href="admin-style.css">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="theme-dark">
+    <!-- Contenedor Principal de la App -->
+    <div class="app-container">
+        
+        <!-- Sidebar / Barra de Navegación Lateral -->
+        <aside class="sidebar" id="main-sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M6 12A6 6 0 0 1 18 12"></path>
+                    </svg>
+                    <span>Wadasaka Club</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-tab="dashboard" id="btn-tab-dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="canchas" id="btn-tab-canchas">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"></path><path d="M21 12H3"></path><path d="M12 3v18"></path><circle cx="12" cy="12" r="4"></circle></svg>
+                    <span>Agenda Canchas</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="buffet" id="btn-tab-buffet">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
+                    <span>Buffet & Kiosco</span>
+                </a>
+                <a href="#" class="menu-item" data-tab="reservas-online" id="btn-tab-online">
+                    <div class="menu-badge-container">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Verificar Web</span>
+                        <span class="badge" id="online-badge-count">0</span>
+                    </div>
+                </a>
+                <a href="#" class="menu-item owner-only" data-tab="reportes" id="btn-tab-reportes">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    <span>Reportes Caja</span>
+                </a>
+                <a href="#" class="menu-item owner-only" data-tab="configuracion" id="btn-tab-config">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="user-avatar">P</div>
+                    <div class="user-info">
+                        <span class="user-name" id="display-user-name">Propietario</span>
+                        <span class="user-role" id="display-user-role">Administrador</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Contenedor de Contenido Principal -->
+        <main class="main-content">
+            
+            <!-- Barra Superior de la Aplicación -->
+            <header class="top-bar">
+                <div class="header-title">
+                    <button class="mobile-toggle" id="btn-mobile-toggle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                
+                <div class="header-actions">
+                    <!-- Selector Rápido de Rol -->
+                    <div class="role-switcher-container">
+                        <label for="role-select" class="role-label">Modo Operación:</label>
+                        <select id="role-select" class="role-select">
+                            <option value="owner" selected>Propietario</option>
+                            <option value="employee_lucas">Empleado: Lucas</option>
+                            <option value="employee_sofia">Empleado: Sofia</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Reloj en Tiempo Real -->
+                    <div class="live-clock" id="live-clock">00:00:00</div>
+                </div>
+            </header>
+            
+            <!-- CONTENIDO DE LAS PESTAÑAS (SPA views) -->
+            
+            <!-- PESTAÑA: DASHBOARD -->
+            <section class="tab-pane active" id="tab-dashboard">
+                <div class="metrics-grid">
+                    <div class="metric-card glass scroll-animation">
+                        <div class="metric-icon income">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                        <div class="metric-details">
+                            <h3>Ingresos del Día</h3>
+                            <p class="metric-value" id="dash-today-income">$0.00</p>
+                            <span class="metric-subtext" id="dash-income-breakdown">Canchas: $0 | Buffet: $0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass scroll-animation">
+                        <div class="metric-icon bookings">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        </div>
+                        <div class="metric-details">
+                            <h3>Turnos Hoy</h3>
+                            <p class="metric-value" id="dash-today-bookings">0 activo(s)</p>
+                            <span class="metric-subtext">Cargados en Wadasaka</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass scroll-animation" id="alert-stock-card">
+                        <div class="metric-icon stock-alert">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        </div>
+                        <div class="metric-details">
+                            <h3>Alertas de Stock</h3>
+                            <p class="metric-value" id="dash-stock-alerts">0</p>
+                            <span class="metric-subtext" id="dash-stock-subtext">Productos en nivel mínimo</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card glass scroll-animation">
+                        <div class="metric-icon cash">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><circle cx="12" cy="12" r="3"></circle></svg>
+                        </div>
+                        <div class="metric-details">
+                            <h3>Caja Hoy</h3>
+                            <p class="metric-value" id="dash-current-cash">$0.00</p>
+                            <span class="metric-subtext" id="dash-cash-breakdown">Efectivo: $0 | Transferencia: $0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Distribución Visual de Canchas en tiempo real -->
+                <div class="dashboard-grid">
+                    <div class="grid-card glass full-width">
+                        <div class="card-header">
+                            <h2>Estado en Vivo - Hoy</h2>
+                            <div class="badge badge-success">Activo</div>
+                        </div>
+                        <div class="canchas-status-cards" id="canchas-status-container">
+                            <!-- Se rellena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actividad Reciente y Alertas de Stock -->
+                <div class="dashboard-sections-two-col">
+                    <div class="section-card glass">
+                        <div class="card-header">
+                            <h2>Movimientos Recientes</h2>
+                        </div>
+                        <div class="activity-log-container">
+                            <table class="activity-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Usuario</th>
+                                        <th>Operación</th>
+                                        <th>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-recent-activity">
+                                    <!-- Se carga dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="section-card glass">
+                        <div class="card-header">
+                            <h2>Productos con Bajo Stock</h2>
+                        </div>
+                        <div class="low-stock-list" id="dashboard-low-stock-list">
+                            <!-- Se carga dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PESTAÑA: CANCHAS (AGENDA) -->
+            <section class="tab-pane" id="tab-canchas">
+                <div class="tab-actions-header">
+                    <div class="date-picker-container">
+                        <button class="btn btn-secondary btn-icon" id="btn-prev-day">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        <input type="date" id="calendar-date-input" class="date-input">
+                        <button class="btn btn-secondary btn-icon" id="btn-next-day">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                    </div>
+                    
+                    <div class="agenda-legends">
+                        <span class="legend-item"><span class="legend-color disponible"></span>Disponible</span>
+                        <span class="legend-item"><span class="legend-color reservado"></span>Reservado (Impago)</span>
+                        <span class="legend-item"><span class="legend-color ocupado"></span>En Juego</span>
+                        <span class="legend-item"><span class="legend-color pagado"></span>Confirmado/Pagado</span>
+                        <span class="legend-item"><span class="legend-color conflicto"></span>Fusión/Cruce</span>
+                    </div>
+                </div>
+                
+                <div class="agenda-table-wrapper glass">
+                    <table class="agenda-table" id="agenda-grid-table">
+                        <thead>
+                            <tr id="agenda-table-header">
+                                <th class="hour-col">Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="agenda-table-body">
+                            <!-- Renglones de 30 minutos generados dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- PESTAÑA: BUFFET & KIOSCO -->
+            <section class="tab-pane" id="tab-buffet">
+                <div class="buffet-layout">
+                    <div class="pos-section glass">
+                        <div class="pos-header">
+                            <div class="search-box">
+                                <input type="text" id="buffet-search-input" placeholder="Buscar producto...">
+                            </div>
+                            <div class="category-filters" id="buffet-category-filters">
+                                <button class="btn-filter active" data-category="all">Todos</button>
+                                <button class="btn-filter" data-category="Bebidas">Bebidas</button>
+                                <button class="btn-filter" data-category="Comidas">Comidas</button>
+                                <button class="btn-filter" data-category="Kiosco">Kiosco</button>
+                            </div>
+                        </div>
+                        
+                        <div class="products-grid" id="buffet-products-grid">
+                            <!-- Productos cargados dinámicamente -->
+                        </div>
+                    </div>
+                    
+                    <div class="pos-cart-panel glass">
+                        <div class="cart-header">
+                            <h2>Carrito</h2>
+                            <button class="btn btn-secondary btn-small" id="btn-clear-cart">Vaciar</button>
+                        </div>
+                        
+                        <div class="cart-items-container" id="cart-items-container">
+                            <div class="empty-cart-message">El carrito está vacío</div>
+                        </div>
+                        
+                        <div class="cart-totals">
+                            <div class="total-row">
+                                <span>Total:</span>
+                                <span class="total-price" id="cart-total-value">$0.00</span>
+                            </div>
+                            
+                            <div class="payment-method-row">
+                                <label>Forma de Pago:</label>
+                                <div class="payment-radios">
+                                    <label class="radio-container">
+                                        <input type="radio" name="buffet-payment" value="efectivo" checked>
+                                        <span class="radio-label">Efectivo</span>
+                                    </label>
+                                    <label class="radio-container">
+                                        <input type="radio" name="buffet-payment" value="transferencia">
+                                        <span class="radio-label">Transferencia</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-full" id="btn-checkout-buffet">Registrar Venta</button>
+                        </div>
+                        
+                        <div class="quick-stock-header">
+                            <h3>Stock Inventario</h3>
+                            <button class="btn btn-secondary btn-small owner-only" id="btn-add-product">Nuevo Producto</button>
+                        </div>
+                        <div class="quick-stock-list-container">
+                            <table class="quick-stock-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Stock</th>
+                                        <th class="owner-only">Precio Vta.</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quick-stock-tbody">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PESTAÑA: VERIFICAR RESERVAS WEB (PENDIENTES TRANSF/WEB) -->
+            <section class="tab-pane" id="tab-reservas-online">
+                <div class="reservas-online-container">
+                    <div class="info-alert glass info-glow">
+                        <div class="alert-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        </div>
+                        <div class="alert-content">
+                            <h3>Reservas Web en Espera de Confirmación</h3>
+                            <p>Las reservas creadas online que requieran confirmación manual (o que estén pendientes de validación externa) aparecerán aquí. Al aprobar el pago, se consolidará el turno y se enviará la confirmación definitiva.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="online-integration-workspace">
+                        <div class="simulator-card glass">
+                            <h2>Simulador de Reserva Web</h2>
+                            <p class="section-desc">Simula la creación de una reserva web en espera por un cliente externo:</p>
+                            <div class="simulator-controls">
+                                <button class="btn btn-secondary btn-full" id="btn-sim-booking-f5">Simular Fútbol 5 (1 Hora)</button>
+                                <button class="btn btn-secondary btn-full" id="btn-sim-booking-f8">Simular Fútbol 8 (1 Hora)</button>
+                                <button class="btn btn-secondary btn-full" id="btn-sim-booking-padel">Simular Pádel (1.5 Horas)</button>
+                            </div>
+                        </div>
+                        
+                        <div class="pending-bookings-card glass">
+                            <h2>Turnos en Espera (Holds y Pendientes)</h2>
+                            <div class="pending-bookings-list" id="pending-online-bookings-list">
+                                <div class="empty-list-message">No hay reservas web pendientes.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PESTAÑA: REPORTES Y CAJA (SOLO PROPIETARIO) -->
+            <section class="tab-pane owner-only" id="tab-reportes">
+                <div class="reports-header-cards">
+                    <div class="report-stat-card glass">
+                        <h3>Caja Acumulada</h3>
+                        <p class="report-value" id="rep-total-income">$0.00</p>
+                        <span class="report-subtext">Histórico en Sistema</span>
+                    </div>
+                    <div class="report-stat-card glass">
+                        <h3>Ingresos Canchas</h3>
+                        <p class="report-value" id="rep-fields-income">$0.00</p>
+                        <span class="report-subtext" id="rep-fields-count">0 transacciones</span>
+                    </div>
+                    <div class="report-stat-card glass">
+                        <h3>Ingresos Buffet</h3>
+                        <p class="report-value" id="rep-buffet-income">$0.00</p>
+                        <span class="report-subtext" id="rep-buffet-count">0 ventas registradas</span>
+                    </div>
+                    <div class="report-stat-card glass">
+                        <h3>Efectivo / Transferencia</h3>
+                        <p class="report-value" id="rep-cash-trans">$0 / $0</p>
+                        <span class="report-subtext">Cierre general acumulado</span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ESPECIAL: CIERRE DE MES DETALLADO -->
+                <div class="monthly-report-box glass scroll-animation">
+                    <div class="monthly-report-header">
+                        <h2>📊 Resumen Financiero por Mes</h2>
+                        <select id="monthly-report-select">
+                            <!-- Rellenado dinámicamente con los meses con datos -->
+                        </select>
+                    </div>
+                    <div class="monthly-grid-summary">
+                        <div class="monthly-stat-subcard">
+                            <h4>Fútbol 5</h4>
+                            <p id="month-income-f5">$0.00</p>
+                        </div>
+                        <div class="monthly-stat-subcard">
+                            <h4>Fútbol 8</h4>
+                            <p id="month-income-f8">$0.00</p>
+                        </div>
+                        <div class="monthly-stat-subcard">
+                            <h4>Pádel</h4>
+                            <p id="month-income-padel">$0.00</p>
+                        </div>
+                        <div class="monthly-stat-subcard">
+                            <h4>Buffet & Kiosco</h4>
+                            <p id="month-income-buffet">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="reports-detailed-section" style="margin-top: 30px;">
+                    <div class="details-card glass">
+                        <div class="card-header-actions">
+                            <h2>Libro Diario de Caja</h2>
+                            <button class="btn btn-secondary btn-small" id="btn-export-csv">Exportar CSV</button>
+                        </div>
+                        <div class="report-table-wrapper">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha/Hora</th>
+                                        <th>Concepto</th>
+                                        <th>Método</th>
+                                        <th>Usuario</th>
+                                        <th>Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-cashflow-tbody">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="details-card glass" style="margin-top: 30px;">
+                        <h2>Registro de Auditoría (Actividad)</h2>
+                        <div class="report-table-wrapper">
+                            <table class="report-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Usuario</th>
+                                        <th>Acción realizada</th>
+                                        <th>Detalles</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-audit-tbody">
+                                    <!-- Cargado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- PESTAÑA: CONFIGURACIÓN (SOLO PROPIETARIO) -->
+            <section class="tab-pane owner-only" id="tab-configuracion">
+                <div class="config-grid">
+                    <div class="config-card glass">
+                        <h2>Tarifas de Alquiler</h2>
+                        <p class="section-desc">Modifica los precios por hora de alquiler de las canchas.</p>
+                        
+                        <form id="form-prices-canchas" class="config-form">
+                            <div class="form-group">
+                                <label for="cfg-price-f5">Fútbol 5 (por hora):</label>
+                                <div class="input-prefix-container">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="cfg-price-f5" required min="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cfg-price-f8">Fútbol 8 (por hora):</label>
+                                <div class="input-prefix-container">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="cfg-price-f8" required min="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cfg-price-padel">Pádel (por hora):</label>
+                                <div class="input-prefix-container">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="cfg-price-padel" required min="0">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Guardar Tarifas</button>
+                        </form>
+                    </div>
+                    
+                    <div class="config-card glass">
+                        <h2>Soporte Cloud / Respaldo</h2>
+                        <p class="section-desc">Controla la infraestructura de la nube y el código de la aplicación.</p>
+                        <div class="maintenance-actions">
+                            <a href="https://github.com" target="_blank" class="btn btn-secondary btn-full" id="btn-view-source" style="text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                                🌐 Código Fuente (GitHub / Vercel)
+                            </a>
+                            <p class="help-text">Este link es visible solo por el propietario y te permite realizar el respaldo o modificaciones del sistema desde cualquier máquina.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- MODAL: REGISTRAR / EDITAR RESERVA -->
+    <div class="modal-backdrop" id="booking-modal">
+        <div class="modal-card glass">
+            <div class="modal-header">
+                <h2 id="modal-booking-title">Registrar Turno</h2>
+                <button class="modal-close" id="btn-close-booking-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-booking">
+                    <input type="hidden" id="booking-cancha-id">
+                    <input type="hidden" id="booking-date">
+                    <input type="hidden" id="booking-start-time">
+                    <input type="hidden" id="booking-id-edit">
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label>Cancha:</label>
+                            <input type="text" id="booking-display-cancha" readonly class="input-readonly">
+                        </div>
+                        <div class="form-group col-6">
+                            <label>Fecha y Hora Inicio:</label>
+                            <input type="text" id="booking-display-datetime" readonly class="input-readonly">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="booking-duracion">Duración del Turno:</label>
+                            <select id="booking-duracion" required>
+                                <option value="1">1 Hora</option>
+                                <option value="1.5">1 Hora y Media</option>
+                                <option value="2">2 Horas</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="booking-estado">Estado del Turno:</label>
+                            <select id="booking-estado" required>
+                                <option value="reservado" selected>Reservado (Impago)</option>
+                                <option value="ocupado">Ocupado (En Juego)</option>
+                                <option value="pagado">Confirmado/Pagado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="booking-cliente">Nombre del Cliente:</label>
+                        <input type="text" id="booking-cliente" required placeholder="Ej: Juan Pérez">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="booking-telefono">Teléfono:</label>
+                        <input type="tel" id="booking-telefono" placeholder="Ej: +54 9 11 1234-5678">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="booking-seña">Monto Seña:</label>
+                            <div class="input-prefix-container">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="booking-seña" value="0" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group col-6" id="booking-payment-method-container">
+                            <label for="booking-pago-metodo">Método de Pago:</label>
+                            <select id="booking-pago-metodo">
+                                <option value="efectivo" selected>Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="price-summary-box">
+                        <div class="price-row">
+                            <span>Precio Sugerido:</span>
+                            <strong id="booking-suggested-price">$0.00</strong>
+                        </div>
+                        <div class="price-row">
+                            <span>Precio Final Cobrado/A Cobrar:</span>
+                            <div class="input-prefix-container price-override">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="booking-final-price" required min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer-buttons">
+                        <button type="button" class="btn btn-danger" id="btn-delete-booking" style="display:none;">Eliminar Turno</button>
+                        <div class="right-buttons">
+                            <button type="button" class="btn btn-secondary" id="btn-cancel-booking">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="btn-save-booking">Guardar Reserva</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL: REGISTRAR / EDITAR PRODUCTO -->
+    <div class="modal-backdrop" id="product-modal">
+        <div class="modal-card glass">
+            <div class="modal-header">
+                <h2 id="modal-product-title">Nuevo Producto</h2>
+                <button class="modal-close" id="btn-close-product-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-product">
+                    <input type="hidden" id="product-id-edit">
+                    
+                    <div class="form-group">
+                        <label for="prod-name">Nombre del Producto:</label>
+                        <input type="text" id="prod-name" required placeholder="Ej: Coca-Cola 1.5L">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="prod-category">Categoría:</label>
+                            <select id="prod-category" required>
+                                <option value="Bebidas">Bebidas</option>
+                                <option value="Comidas">Comidas</option>
+                                <option value="Kiosco">Kiosco</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="prod-stock">Stock actual:</label>
+                            <input type="number" id="prod-stock" required min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="prod-cost">Precio de Costo:</label>
+                            <div class="input-prefix-container">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="prod-cost" required min="0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="prod-price">Precio de Venta:</label>
+                            <div class="input-prefix-container">
+                                <span class="input-prefix">$</span>
+                                <input type="number" id="prod-price" required min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prod-min-stock">Stock Mínimo (Alerta):</label>
+                        <input type="number" id="prod-min-stock" required min="0" value="5">
+                    </div>
+                    
+                    <div class="modal-footer-buttons">
+                        <button type="button" class="btn btn-danger" id="btn-delete-product" style="display:none;">Eliminar Producto</button>
+                        <div class="right-buttons">
+                            <button type="button" class="btn btn-secondary" id="btn-cancel-product">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" id="btn-save-product">Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toast-container"></div>
+    <script src="admin-app.js"></script>
+</body>
+</html>

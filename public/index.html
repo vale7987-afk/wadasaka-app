@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wadasaka Club - Reservas</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 500px;
+            background: white;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, .subtitle {
+            text-align: center;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.95em;
+            margin-bottom: 25px;
+        }
+
+        .admin-link {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .admin-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box p {
+            margin: 6px 0;
+            font-size: 16px;
+        }
+
+        .price-highlight {
+            font-weight: bold;
+            color: var(--secondary);
+            font-size: 1.2em;
+        }
+
+        .deposit-highlight {
+            color: #009ee3;
+        }
+
+        .captcha-row {
+            display: grid;
+            grid-template-columns: 1fr 130px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .captcha-question {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-message {
+            display: none;
+            margin-top: 14px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .status-message.success {
+            display: block;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-message.warning {
+            display: block;
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-pay {
+            width: 100%;
+            background-color: #009ee3;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-pay:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Estilos del Grid de Horarios y Holds */
+        .grid-horarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+
+        .btn-bloque {
+            padding: 12px 6px;
+            border: 2px solid #e5e7eb;
+            background: white; /* Blanco: Libre */
+            color: var(--dark);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-bloque:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+        }
+
+        .btn-bloque.selected {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: white !important;
+        }
+
+        .btn-bloque.reservado {
+            background-color: #e5e7eb !important; /* Gris: Reservado */
+            border-color: #d1d5db !important;
+            color: #9ca3af !important;
+            cursor: not-allowed;
+        }
+
+        .btn-bloque.hold {
+            background-color: #fef08a !important; /* Amarillo claro: En espera */
+            border-color: #fde047 !important;
+            color: #854d0e !important;
+            cursor: not-allowed;
+        }
+        
+        .timer-container {
+            display: none;
+            background-color: #fef3c7;
+            border-left: 5px solid var(--warning);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #92400e;
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Wadasaka Club</h1>
+    <div class="subtitle">Reservas Online de Canchas</div>
+    <div class="admin-link">
+        <a href="/admin">Panel Admin</a>
+    </div>
+
+    <!-- Alerta de temporizador de Hold de 5 minutos -->
+    <div id="hold-timer" class="timer-container">
+        ⚠️ Tu turno seleccionado está bloqueado temporalmente por <span id="timer-countdown">5:00</span> minutos para completar el pago.
+    </div>
+
+    <form id="form-reserva">
+        <div class="form-group">
+            <label>Nombre y Apellido:</label>
+            <input type="text" id="nombre" placeholder="Nombre completo" required>
+        </div>
+
+        <div class="form-group">
+            <label>Telefono de Contacto:</label>
+            <input type="tel" id="telefono" placeholder="+54 9 11 1234-5678" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email para recibir la confirmacion:</label>
+            <input type="email" id="email" placeholder="tu@email.com" required>
+        </div>
+
+        <div class="form-group">
+            <label>Selecciona la Cancha / Deporte:</label>
+            <select id="cancha" required>
+                <option value="padel">Cancha de Padel ($26.000 / h)</option>
+                <option value="futbol5">Cancha de Futbol 5 ($45.000 / h)</option>
+                <option value="futbol8">Cancha de Futbol 8 ($72.000 / h)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Duracion del Turno:</label>
+            <select id="duracion" required></select>
+        </div>
+
+        <div class="form-group">
+            <label>Selecciona el Dia:</label>
+            <input type="date" id="fecha" required>
+        </div>
+
+        <!-- Grid de Horarios de 3 Colores -->
+        <div class="form-group">
+            <label>Selecciona el Horario (Blanco: Libre, Gris: Ocupado, Amarillo: En espera):</label>
+            <div id="grid-horarios" class="grid-horarios">
+                <!-- Generado dinámicamente -->
+            </div>
+            <input type="hidden" id="horario" required>
+        </div>
+
+        <div class="info-box">
+            <p>Rango Horario: <span id="txt-rango" style="font-weight: bold; color: #1e3a8a;">-</span></p>
+            <p>Total del Turno: <span id="txt-total" class="price-highlight">$0</span></p>
+            <p>Monto de la sena a pagar ahora: <span id="txt-sena" class="price-highlight deposit-highlight">$0</span></p>
+            <p>Resta por pagar al llegar: <span id="txt-resta" class="price-highlight">$0</span></p>
+        </div>
+
+        <div class="form-group">
+            <label>Verificacion anti-robot:</label>
+            <div class="captcha-row">
+                <div class="captcha-question" id="captcha-pregunta">Cargando...</div>
+                <input type="number" id="captcha-respuesta" placeholder="Resultado" required>
+            </div>
+        </div>
+
+        <div id="status-message" class="status-message"></div>
+
+        <button type="submit" class="btn-pay" id="btn-pay">Confirmar y Pagar Sena con Mercado Pago</button>
+    </form>
+</div>
+
+<script>
+    const sCancha = document.getElementById('cancha');
+    const sDuracion = document.getElementById('duracion');
+    const gridHorarios = document.getElementById('grid-horarios');
+    const inputHorario = document.getElementById('horario');
+    const inputFecha = document.getElementById('fecha');
+    const tTotal = document.getElementById('txt-total');
+    const tSena = document.getElementById('txt-sena');
+    const tResta = document.getElementById('txt-resta');
+    const tRango = document.getElementById('txt-rango');
+    const captchaPregunta = document.getElementById('captcha-pregunta');
+    const captchaRespuesta = document.getElementById('captcha-respuesta');
+    const statusMessage = document.getElementById('status-message');
+    const btnPay = document.getElementById('btn-pay');
+    
+    const holdTimer = document.getElementById('hold-timer');
+    const timerCountdown = document.getElementById('timer-countdown');
+
+    let captchaToken = '';
+    let holdInterval = null;
+
+    function formatearPesos(valor) {
+        return '$' + valor.toLocaleString('es-AR');
+    }
+
+    function calcularRango(horaInicio, duracion) {
+        const [hInicio, mInicio] = horaInicio.split(':').map(Number);
+        const minutosTotales = (hInicio * 60) + mInicio + (duracion * 60);
+        const hFin = Math.floor(minutosTotales / 60);
+        const mFin = minutosTotales % 60;
+        const hStr = String(hInicio).padStart(2, '0');
+        const mStr = String(mInicio).padStart(2, '0');
+        const hFinStr = String(hFin).padStart(2, '0');
+        const mFinStr = String(mFin).padStart(2, '0');
+        return `${hStr}:${mStr} hs a ${hFinStr}:${mFinStr} hs`;
+    }
+
+    function obtenerImportes() {
+        const dep = sCancha.value;
+        const tiempo = parseFloat(sDuracion.value) || 1;
+
+        if (dep === 'padel') {
+            if (tiempo === 1) return { total: 26000, sena: 7000 };
+            if (tiempo === 1.5) return { total: 39000, sena: 7000 };
+            return { total: 50000, sena: 7000 };
+        }
+
+        if (dep === 'futbol5') {
+            return { total: 45000 * tiempo, sena: 10000 * tiempo };
+        }
+
+        return { total: 72000 * tiempo, sena: 15000 * tiempo };
+    }
+
+    function mostrarMensaje(tipo, texto) {
+        statusMessage.className = 'status-message ' + tipo;
+        statusMessage.textContent = texto;
+    }
+
+    function limpiarMensaje() {
+        statusMessage.className = 'status-message';
+        statusMessage.textContent = '';
+    }
+
+    async function cargarCaptcha() {
+        try {
+            const response = await fetch('/api/captcha');
+            const captcha = await response.json();
+            captchaToken = captcha.token;
+            captchaPregunta.textContent = captcha.pregunta + ' = ?';
+            captchaRespuesta.value = '';
+        } catch (error) {
+            captchaPregunta.textContent = 'Error';
+            mostrarMensaje('error', 'No se pudo cargar la verificacion anti-robot.');
+        }
+    }
+
+    // Traduce el valor select del deporte a lo que el backend usa en reservas.json
+    function getMappedCanchaName(deporteValue) {
+        if (deporteValue === 'padel') return 'Cancha de Pádel';
+        if (deporteValue === 'futbol5') return 'Cancha de Fútbol 5';
+        return 'Cancha de Fútbol 8';
+    }
+
+    async function refrescarFormulario() {
+        const dep = sCancha.value;
+        const duracionActual = parseFloat(sDuracion.value) || 1;
+        sDuracion.innerHTML = '';
+        gridHorarios.innerHTML = '';
+        inputHorario.value = '';
+
+        if (dep === 'padel') {
+            sDuracion.innerHTML = "<option value='1'>1 hora</option><option value='1.5'>1 hora y media</option><option value='2'>2 horas</option>";
+        } else {
+            sDuracion.innerHTML = "<option value='1'>1 hora</option><option value='2'>2 horas</option><option value='3'>3 horas</option>";
+        }
+
+        const duracionValida = Array.from(sDuracion.options).some(option => parseFloat(option.value) === duracionActual);
+        sDuracion.value = duracionValida ? String(duracionActual) : sDuracion.options[0].value;
+        const duracionSeleccionada = parseFloat(sDuracion.value);
+
+        // Generar lista de horas posibles
+        const horasPosibles = [];
+        if (dep === 'padel') {
+            for (let h = 9; h <= 23; h++) {
+                const hStr = String(h).padStart(2, '0');
+                ['00', '30'].forEach(minuto => {
+                    horasPosibles.push(`${hStr}:${minuto}`);
+                });
+            }
+        } else {
+            for (let h = 9; h <= 23; h++) {
+                horasPosibles.push(`${String(h).padStart(2, '0')}:00`);
+            }
+        }
+
+        // Consultar ocupación al servidor en tiempo real
+        let ocupados = [];
+        try {
+            const canchaName = getMappedCanchaName(dep);
+            const res = await fetch(`/api/reservas/estado-horarios?cancha=${encodeURIComponent(canchaName)}&fecha=${inputFecha.value}`);
+            if (res.ok) {
+                ocupados = await res.json(); // Array de { bloque, estado }
+            }
+        } catch (e) {
+            console.error("Error al obtener disponibilidad en tiempo real:", e);
+        }
+
+        // Renderizar botones
+        horasPosibles.forEach(hora => {
+            const startBloque = timeToMinutes(hora) / 60;
+            const cantBloques = duracionSeleccionada * 2;
+            
+            // Verificar si el bloque cabe sin pasarse de las 24 hs
+            if (startBloque + duracionSeleccionada > 24) return;
+
+            // Determinar si choca con alguna reserva (confirmed o hold)
+            let estadoChoque = null; // null: libre, 'CONFIRMADO', 'PENDIENTE'
+
+            for (let i = 0; i < cantBloques; i++) {
+                const bVal = startBloque + (i * 0.5);
+                const match = ocupados.find(o => Math.abs(o.bloque - bVal) < 0.01);
+                
+                if (match) {
+                    if (match.estado === 'CONFIRMADO') {
+                        estadoChoque = 'CONFIRMADO';
+                        break; // Bloqueo total
+                    } else if (match.estado === 'PENDIENTE') {
+                        estadoChoque = 'PENDIENTE'; // Hold temporal
+                    }
+                }
+            }
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-bloque';
+            btn.value = hora;
+            btn.textContent = hora;
+
+            if (estadoChoque === 'CONFIRMADO') {
+                btn.className += ' reservado';
+                btn.disabled = true;
+            } else if (estadoChoque === 'PENDIENTE') {
+                btn.className += ' hold';
+                btn.disabled = true;
+            } else {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.btn-bloque').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    inputHorario.value = hora;
+                    hacerCalculos();
+                    activarHoldLocal();
+                });
+            }
+
+            gridHorarios.appendChild(btn);
+        });
+
+        hacerCalculos();
+    }
+
+    function timeToMinutes(timeStr) {
+        const parts = timeStr.split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+
+    function hacerCalculos() {
+        const tiempo = parseFloat(sDuracion.value) || 1;
+        const importes = obtenerImportes();
+        const resta = importes.total - importes.sena;
+
+        tTotal.textContent = formatearPesos(importes.total);
+        tSena.textContent = formatearPesos(importes.sena);
+        tResta.textContent = formatearPesos(resta);
+
+        if (inputHorario.value) {
+            tRango.textContent = calcularRango(inputHorario.value, tiempo);
+        } else {
+            tRango.textContent = '-';
+        }
+    }
+
+    // Iniciar temporizador de 5 minutos cuando seleccionan un horario
+    function activarHoldLocal() {
+        if (holdInterval) clearInterval(holdInterval);
+        
+        holdTimer.style.display = 'block';
+        let segundos = 300; // 5 minutos
+
+        timerCountdown.textContent = "5:00";
+
+        holdInterval = setInterval(() => {
+            segundos--;
+            if (segundos <= 0) {
+                clearInterval(holdInterval);
+                holdTimer.style.display = 'none';
+                alert("⏰ El tiempo límite de espera para reservar (5 minutos) ha expirado. Por favor, selecciona el horario nuevamente.");
+                refrescarFormulario();
+            } else {
+                const min = Math.floor(segundos / 60);
+                const sec = segundos % 60;
+                timerCountdown.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+            }
+        }, 1000);
+    }
+
+    function aplicarEstadoPagoDesdeUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const estadoPago = params.get('pago');
+
+        if (estadoPago === 'aprobado') {
+            mostrarMensaje('success', '✅ ¡Pago Recibido! Tu turno ha sido confirmado automáticamente.');
+            if (holdInterval) clearInterval(holdInterval);
+            holdTimer.style.display = 'none';
+        } else if (estadoPago === 'pendiente') {
+            mostrarMensaje('warning', '⏳ El pago quedó pendiente. Se confirmará de forma automática al acreditarse.');
+        } else if (estadoPago === 'fallido') {
+            mostrarMensaje('error', '❌ El pago no se pudo completar. Por favor, intenta de nuevo.');
+        }
+
+        if (estadoPago) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    sCancha.addEventListener('change', refrescarFormulario);
+    sDuracion.addEventListener('change', refrescarFormulario);
+    inputFecha.addEventListener('change', refrescarFormulario);
+
+    const hoy = new Date().toISOString().split('T')[0];
+    inputFecha.value = hoy;
+    inputFecha.min = hoy;
+    refrescarFormulario();
+    cargarCaptcha();
+    aplicarEstadoPagoDesdeUrl();
+
+    document.getElementById('form-reserva').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        limpiarMensaje();
+
+        if (!inputHorario.value) {
+            mostrarMensaje('error', 'Por favor, selecciona un horario en el cuadro blanco.');
+            return;
+        }
+
+        const nombreCompleto = document.getElementById('nombre').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const deporte = sCancha.value;
+        const tiempo = parseFloat(sDuracion.value) || 1;
+        const fecha = inputFecha.value;
+        const horaInicio = inputHorario.value;
+        const partesNombre = nombreCompleto.split(/\s+/);
+        const nombre = partesNombre[0] || '';
+        const apellido = partesNombre.slice(1).join(' ');
+
+        const cancha = getMappedCanchaName(deporte);
+        const importes = obtenerImportes();
+
+        try {
+            btnPay.disabled = true;
+            btnPay.textContent = 'Creando seña de pago...';
+
+            const response = await fetch('/create_preference', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: 'Seña Reserva Wadasaka Club - ' + deporte.toUpperCase(),
+                    price: importes.sena,
+                    quantity: 1,
+                    nombre,
+                    apellido,
+                    telefono,
+                    email,
+                    cancha,
+                    fecha,
+                    horaInicio,
+                    duracionHoras: tiempo,
+                    captchaToken,
+                    captchaAnswer: captchaRespuesta.value
+                })
+            });
+
+            const preference = await response.json();
+
+            if (!response.ok) {
+                mostrarMensaje('error', preference.error || 'No se pudo crear el pago.');
+                await cargarCaptcha();
+                return;
+            }
+
+            if (preference.init_point) {
+                window.location.href = preference.init_point;
+            } else {
+                mostrarMensaje('error', 'Error al conectar con Mercado Pago.');
+                await cargarCaptcha();
+            }
+        } catch (err) {
+            console.error(err);
+            mostrarMensaje('error', 'Error en el servidor de pagos.');
+            await cargarCaptcha();
+        } finally {
+            btnPay.disabled = false;
+            btnPay.textContent = 'Confirmar y Pagar Sena con Mercado Pago';
+        }
+    });
+</script>
+</body>
+</html>
