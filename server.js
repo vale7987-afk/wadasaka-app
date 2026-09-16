@@ -502,14 +502,12 @@ function obtenerImportes(cancha, duracionHoras) {
         const valorHora = precios.cancha_padel || 30000;
         if (duracion === 2) {
             total = 58000; // Promoción 2 horas de Pádel
-            sena = 20000;
         } else if (duracion === 1.5) {
             total = 45000;
-            sena = 15000;
         } else {
             total = valorHora * duracion;
-            sena = 10000;
         }
+        sena = 10000; // Seña fija de $10.000 para Pádel (1h, 1.5h y 2h)
     } else if (cLower.includes('5')) {
         const valorHora = precios.cancha_f5 || 50000;
         total = valorHora * duracion;
