@@ -290,6 +290,15 @@
         </div>
 
         <div class="form-group">
+            <label>Metodo de Pago de la Sena:</label>
+            <select id="metodo-pago">
+                <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
+                <option value="transferencia">🏦 Transferencia Bancaria (Alias: WADASAKA.CLUB)</option>
+                <option value="efectivo">💵 Reservar y Pagar en la Cancha (Efectivo)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label>Verificacion anti-robot:</label>
             <div class="captcha-row">
                 <div class="captcha-question" id="captcha-pregunta">Cargando...</div>
@@ -535,7 +544,11 @@
         const estadoPago = params.get('pago');
 
         if (estadoPago === 'aprobado') {
-            mostrarMensaje('success', '✅ ¡Pago Recibido! Tu turno ha sido confirmado automáticamente.');
+            mostrarMensaje('success', '✅ ¡Reserva Registrada y Confirmada! Tu turno ha sido agendado con éxito.');
+            if (holdInterval) clearInterval(holdInterval);
+            holdTimer.style.display = 'none';
+        } else if (estadoPago === 'transferencia') {
+            mostrarMensaje('success', '🏦 ¡Reserva Solicitada con Éxito! Envía la seña por transferencia al Alias: WADASAKA.CLUB para confirmar tu turno.');
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {
@@ -547,6 +560,19 @@
         if (estadoPago) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+    }
+
+    const sMetodoPago = document.getElementById('metodo-pago');
+    if (sMetodoPago) {
+        sMetodoPago.addEventListener('change', () => {
+            if (sMetodoPago.value === 'transferencia') {
+                btnPay.textContent = 'Confirmar Reserva por Transferencia Bancaria';
+            } else if (sMetodoPago.value === 'efectivo') {
+                btnPay.textContent = 'Confirmar Reserva (Pago en Cancha)';
+            } else {
+                btnPay.textContent = 'Confirmar y Pagar Sena con Mercado Pago';
+            }
+        });
     }
 
     sCancha.addEventListener('change', refrescarFormulario);
@@ -579,13 +605,14 @@
         const partesNombre = nombreCompleto.split(/\s+/);
         const nombre = partesNombre[0] || '';
         const apellido = partesNombre.slice(1).join(' ');
+        const metodoPagoVal = sMetodoPago ? sMetodoPago.value : 'mercadopago';
 
         const cancha = getMappedCanchaName(deporte);
         const importes = obtenerImportes();
 
         try {
             btnPay.disabled = true;
-            btnPay.textContent = 'Creando seña de pago...';
+            btnPay.textContent = 'Procesando reserva...';
 
             const response = await fetch('/api/create_preference', {
                 method: 'POST',
@@ -602,6 +629,7 @@
                     fecha,
                     horaInicio,
                     duracionHoras: tiempo,
+                    metodoPago: metodoPagoVal,
                     captchaToken,
                     captchaAnswer: captchaRespuesta.value
                 })

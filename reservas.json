@@ -52,5 +52,24 @@
     "senaPagada": 10000,
     "saldoPendiente": 35000,
     "timestamp": "2026-09-16T04:08:36.917Z"
+  },
+  {
+    "id": 1789587621100,
+    "nombre": "Juan",
+    "apellido": "Perez",
+    "telefono": "1122334455",
+    "email": "test@wadasaka.com",
+    "cancha": "Cancha de Fútbol 5",
+    "fecha": "2026-09-20",
+    "horaInicio": "18:00",
+    "duracionHoras": 1,
+    "estado": "PENDIENTE",
+    "mercadoPagoId": null,
+    "preferenceId": "3454161020-d45be9a0-3ed8-4cc4-9ebf-2df8d77796e9",
+    "pagoMetodo": "mercadopago",
+    "totalTurno": 45000,
+    "senaPagada": 10000,
+    "saldoPendiente": 35000,
+    "timestamp": "2026-09-16T19:40:21.100Z"
   }
 ]
