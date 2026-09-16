@@ -757,28 +757,37 @@ app.post('/create_preference', async (req, res) => {
         let preferenceId = null;
         let initPoint = null;
 
+        // Determinar URL pública del servidor dinámicamente
+        const protocol = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers.host || 'wadasaka-app-club.vercel.app';
+        const currentUrl = process.env.APP_URL || `${protocol}://${host}`;
+
         // Si no es simulación, crear preferencia de Mercado Pago
         if (!simulado) {
             const preference = new Preference(client);
-            const response = await preference.create({
-                body: {
-                    items: [{
-                        title: 'Seña Reserva Wadasaka Club',
-                        quantity: 1,
-                        unit_price: price,
-                        currency_id: 'ARS'
-                    }],
-                    back_urls: {
-                        success: `${APP_URL}/?pago=aprobado`,
-                        failure: `${APP_URL}/?pago=fallido`,
-                        pending: `${APP_URL}/?pago=pendiente`
-                    },
-                    auto_return: 'approved',
-                    notification_url: `${APP_URL}/api/pagos/webhook`
-                }
-            });
+            const prefBody = {
+                items: [{
+                    title: 'Seña Reserva Wadasaka Club',
+                    quantity: 1,
+                    unit_price: Number(price),
+                    currency_id: 'ARS'
+                }],
+                back_urls: {
+                    success: `${currentUrl}/?pago=aprobado`,
+                    failure: `${currentUrl}/?pago=fallido`,
+                    pending: `${currentUrl}/?pago=pendiente`
+                },
+                auto_return: 'approved'
+            };
+
+            // MercadoPago exige HTTPS válido para notification_url
+            if (!currentUrl.includes('localhost')) {
+                prefBody.notification_url = `${currentUrl}/api/pagos/webhook`;
+            }
+
+            const response = await preference.create({ body: prefBody });
             preferenceId = response.id;
-            initPoint = response.init_point;
+            initPoint = response.init_point || response.sandbox_init_point;
         } else {
             preferenceId = 'sim_' + Date.now();
             initPoint = '/?pago=aprobado';
@@ -802,8 +811,8 @@ app.post('/create_preference', async (req, res) => {
             mercadoPagoId: null,
             preferenceId,
             totalTurno: importes.total,
-            senaPagada: price || importes.sena,
-            saldoPendiente: importes.total - (price || importes.sena),
+            senaPagada: Number(price || importes.sena),
+            saldoPendiente: importes.total - Number(price || importes.sena),
             timestamp: new Date().toISOString()
         };
         
@@ -813,8 +822,8 @@ app.post('/create_preference', async (req, res) => {
         
         res.json({ init_point: initPoint, id: preferenceId });
     } catch (error) {
-        console.error('❌ Error al procesar reserva:', error.message);
-        res.status(500).json({ error: 'Error interno en pasarela' });
+        console.error('❌ Error al procesar reserva MP:', error.message || error);
+        res.status(500).json({ error: error.message || 'Error en el servidor de pagos. Verifica las credenciales de MercadoPago.' });
     }
 });
 
