@@ -110,7 +110,7 @@ let cashflow = [];
 let auditLog = [];
 
 async function reloadMemoryCache() {
-    precios = await dbLoad('precios', { cancha_f5: 45000, cancha_f8: 72000, cancha_padel: 26000 });
+    precios = await dbLoad('precios', { cancha_f5: 50000, cancha_f8: 80000, cancha_padel: 30000 });
     productos = await dbLoad('productos', [
         { id: 'p1', name: 'Coca-Cola 500ml', category: 'Bebidas', cost: 800, price: 1500, stock: 25, minStock: 5 },
         { id: 'p2', name: 'Agua Mineral 500ml', category: 'Bebidas', cost: 500, price: 1000, stock: 30, minStock: 6 },
@@ -494,21 +494,30 @@ async function verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloq
 
 function obtenerImportes(cancha, duracionHoras) {
     const duracion = Number(duracionHoras || 1);
+    const cLower = String(cancha || '').toLowerCase();
     let total = 0;
     let sena = 0;
 
-    if (cancha.toLowerCase().includes('pad')) {
-        const valorHora = precios.cancha_padel || 26000;
-        total = valorHora * duracion;
-        sena = 7000; 
-    } else if (cancha.includes('5')) {
-        const valorHora = precios.cancha_f5 || 45000;
-        total = valorHora * duracion;
-        sena = 10000 * duracion;
-    } else {
-        const valorHora = precios.cancha_f8 || 72000;
+    if (cLower.includes('pad')) {
+        const valorHora = precios.cancha_padel || 30000;
+        if (duracion === 2) {
+            total = 58000; // Promoción 2 horas de Pádel
+            sena = 20000;
+        } else if (duracion === 1.5) {
+            total = 45000;
+            sena = 15000;
+        } else {
+            total = valorHora * duracion;
+            sena = 10000;
+        }
+    } else if (cLower.includes('5')) {
+        const valorHora = precios.cancha_f5 || 50000;
         total = valorHora * duracion;
         sena = 15000 * duracion;
+    } else {
+        const valorHora = precios.cancha_f8 || 80000;
+        total = valorHora * duracion;
+        sena = 20000 * duracion;
     }
 
     return { total, sena, saldo: total - sena };

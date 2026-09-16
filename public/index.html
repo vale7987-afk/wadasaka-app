@@ -257,9 +257,9 @@
         <div class="form-group">
             <label>Selecciona la Cancha / Deporte:</label>
             <select id="cancha" required>
-                <option value="padel">Cancha de Padel ($26.000 / h)</option>
-                <option value="futbol5">Cancha de Futbol 5 ($45.000 / h)</option>
-                <option value="futbol8">Cancha de Futbol 8 ($72.000 / h)</option>
+                <option value="padel">Cancha de Pádel ($30.000 / h - Promoción 2h $58.000)</option>
+                <option value="futbol5">Cancha de Fútbol 5 ($50.000 / h)</option>
+                <option value="futbol8">Cancha de Fútbol 8 ($80.000 / h)</option>
             </select>
         </div>
 
@@ -285,12 +285,12 @@
         <div class="info-box">
             <p>Rango Horario: <span id="txt-rango" style="font-weight: bold; color: #1e3a8a;">-</span></p>
             <p>Total del Turno: <span id="txt-total" class="price-highlight">$0</span></p>
-            <p>Monto de la sena a pagar ahora: <span id="txt-sena" class="price-highlight deposit-highlight">$0</span></p>
+            <p>Monto de la seña a pagar ahora: <span id="txt-sena" class="price-highlight deposit-highlight">$0</span></p>
             <p>Resta por pagar al llegar: <span id="txt-resta" class="price-highlight">$0</span></p>
         </div>
 
         <div class="form-group">
-            <label>Metodo de Pago de la Sena:</label>
+            <label>Método de Pago de la Seña:</label>
             <select id="metodo-pago">
                 <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
                 <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaof)</option>
@@ -307,7 +307,7 @@
 
         <div id="status-message" class="status-message"></div>
 
-        <button type="submit" class="btn-pay" id="btn-pay">Confirmar y Pagar Sena con Mercado Pago</button>
+        <button type="submit" class="btn-pay" id="btn-pay">Confirmar y Pagar Seña con Mercado Pago</button>
     </form>
 </div>
 
@@ -353,16 +353,17 @@
         const tiempo = parseFloat(sDuracion.value) || 1;
 
         if (dep === 'padel') {
-            if (tiempo === 1) return { total: 26000, sena: 7000 };
-            if (tiempo === 1.5) return { total: 39000, sena: 7000 };
-            return { total: 50000, sena: 7000 };
+            if (tiempo === 1) return { total: 30000, sena: 10000 };
+            if (tiempo === 1.5) return { total: 45000, sena: 15000 };
+            if (tiempo === 2) return { total: 58000, sena: 20000 };
+            return { total: 30000 * tiempo, sena: 10000 * tiempo };
         }
 
         if (dep === 'futbol5') {
-            return { total: 45000 * tiempo, sena: 10000 * tiempo };
+            return { total: 50000 * tiempo, sena: 15000 * tiempo };
         }
 
-        return { total: 72000 * tiempo, sena: 15000 * tiempo };
+        return { total: 80000 * tiempo, sena: 20000 * tiempo };
     }
 
     function mostrarMensaje(tipo, texto) {
@@ -660,7 +661,7 @@
             await cargarCaptcha();
         } finally {
             btnPay.disabled = false;
-            btnPay.textContent = 'Confirmar y Pagar Sena con Mercado Pago';
+            btnPay.textContent = (sMetodoPago && sMetodoPago.value === 'transferencia') ? 'Confirmar Reserva por Transferencia Bancaria' : 'Confirmar y Pagar Seña con Mercado Pago';
         }
     });
 </script>

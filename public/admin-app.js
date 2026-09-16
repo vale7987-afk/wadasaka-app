@@ -8,9 +8,9 @@ let state = {
     currentTab: 'dashboard',
     currentDate: '', // Formato YYYY-MM-DD
     prices: {
-        cancha_f5: 45000,
-        cancha_f8: 72000,
-        cancha_padel: 26000
+        cancha_f5: 50000,
+        cancha_f8: 80000,
+        cancha_padel: 30000
     },
     canchas: [
         { id: 'cancha_f5_a', name: 'Fútbol 5 - Cancha A', type: 'f5' },
