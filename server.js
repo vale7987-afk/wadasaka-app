@@ -735,7 +735,7 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
 });
 
 // Endpoint para crear reserva (por la web)
-app.post('/create_preference', async (req, res) => {
+app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
     const { price, nombre, apellido, telefono, email, cancha, fecha, horaInicio, duracionHoras, captchaToken, captchaAnswer } = req.body;
     const simulado = req.query.simulado === 'true';
 

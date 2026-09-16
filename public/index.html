@@ -586,7 +586,7 @@
             btnPay.disabled = true;
             btnPay.textContent = 'Creando seña de pago...';
 
-            const response = await fetch('/create_preference', {
+            const response = await fetch('/api/create_preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -606,10 +606,15 @@
                 })
             });
 
-            const preference = await response.json();
+            let preference = {};
+            try {
+                preference = await response.json();
+            } catch (jsonErr) {
+                console.error("Error parseando respuesta JSON:", jsonErr);
+            }
 
             if (!response.ok) {
-                mostrarMensaje('error', preference.error || 'No se pudo crear el pago.');
+                mostrarMensaje('error', preference.error || 'No se pudo crear el pago (Error ' + response.status + ').');
                 await cargarCaptcha();
                 return;
             }
@@ -617,12 +622,12 @@
             if (preference.init_point) {
                 window.location.href = preference.init_point;
             } else {
-                mostrarMensaje('error', 'Error al conectar con Mercado Pago.');
+                mostrarMensaje('error', preference.error || 'Error al conectar con Mercado Pago.');
                 await cargarCaptcha();
             }
         } catch (err) {
             console.error(err);
-            mostrarMensaje('error', 'Error en el servidor de pagos.');
+            mostrarMensaje('error', err.message || 'Error en el servidor de pagos.');
             await cargarCaptcha();
         } finally {
             btnPay.disabled = false;
