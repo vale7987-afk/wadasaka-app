@@ -548,7 +548,9 @@
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'transferencia') {
-            mostrarMensaje('success', '🏦 ¡Reserva Solicitada con Éxito! Envía la seña por transferencia al Alias: wadasakaof para confirmar tu turno.');
+            const refCode = params.get('ref') || 'WADA-1234';
+            const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seña';
+            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n• Transfiere ${montoVal} al Alias: wadasakaof\n• En el MOTIVO de la transferencia coloca: ${refCode}\n• Tu turno está reservado. Al verificar la seña lo pasamos a confirmado.`);
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {

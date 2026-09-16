@@ -828,14 +828,18 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
             }
         }
 
+        const codigoReferencia = 'WADA-' + Math.floor(1000 + Math.random() * 9000);
+
         if (esSimulado || !initPoint) {
             preferenceId = 'direct_' + Date.now();
-            initPoint = metodoPago === 'transferencia' ? '/?pago=transferencia' : '/?pago=aprobado';
+            initPoint = metodoPago === 'transferencia' 
+                ? `/?pago=transferencia&ref=${codigoReferencia}&monto=${price || importes.sena}` 
+                : '/?pago=aprobado';
         }
         
         // Calcular importes sugeridos y seña
         const importes = obtenerImportes(cancha, duracionHoras);
-        const esConfirmado = metodoPago === 'efectivo' || esSimulado;
+        const esConfirmado = (metodoPago === 'mercadopago' && !esSimulado);
 
         // Crear nueva reserva
         const nuevaReserva = {
@@ -851,6 +855,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
             estado: esConfirmado ? 'CONFIRMADO' : 'PENDIENTE',
             mercadoPagoId: null,
             preferenceId,
+            codigoReferencia,
             pagoMetodo: metodoPago || 'mercadopago',
             totalTurno: importes.total,
             senaPagada: Number(price || importes.sena),
@@ -862,8 +867,32 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         reservas.push(nuevaReserva);
         await dbSave('reservas', reservas);
         recargarReservasConfirmadas();
+
+        // Si es transferencia, notificar por email al administrador para pronta revisión
+        if (metodoPago === 'transferencia') {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: ADMIN_EMAIL,
+                    subject: `🔔 Nueva Solicitud de Transferencia [${codigoReferencia}] - ${nombre} ${apellido}`,
+                    html: `
+                        <h2>Solicitud de Reserva por Transferencia</h2>
+                        <p><strong>Código de Referencia:</strong> <span style="font-size:1.3em; font-weight:bold; color:#1e3a8a;">${codigoReferencia}</span></p>
+                        <p><strong>Cliente:</strong> ${nombre} ${apellido} (${telefono})</p>
+                        <p><strong>Cancha:</strong> ${cancha}</p>
+                        <p><strong>Fecha y Hora:</strong> ${fecha} a las ${horaInicio} hs (${duracionHoras}h)</p>
+                        <p><strong>Monto Seña a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
+                        <p><strong>Alias Mercado Pago:</strong> wadasakaof</p>
+                        <hr>
+                        <p>Ingresa al panel admin en <a href="${currentUrl}/admin">Wadasaka Admin</a> para confirmar la seña con 1 clic al verificar el dinero.</p>
+                    `
+                });
+            } catch (mailErr) {
+                console.error("Error notificando transferencia admin:", mailErr.message);
+            }
+        }
         
-        res.json({ init_point: initPoint, id: preferenceId });
+        res.json({ init_point: initPoint, id: preferenceId, codigoReferencia });
     } catch (error) {
         console.error('❌ Error al procesar reserva:', error.message || error);
         res.status(500).json({ error: error.message || 'Error al procesar la reserva.' });

@@ -112,13 +112,8 @@ async function fetchBookings() {
         // Filtrar reservas locales
         state.bookings = all.filter(r => r.estado === 'CONFIRMADO');
         
-        // Filtrar reservas que están PENDIENTES y tienen menos de 5 minutos
-        // Estas representan turnos en proceso de pago
-        state.pendingOnline = all.filter(r => {
-            if (r.estado !== 'PENDIENTE') return false;
-            const msPassed = Date.now() - new Date(r.timestamp).getTime();
-            return msPassed < 5 * 60 * 1000;
-        });
+        // Filtrar reservas que están PENDIENTES (por transferencia o hold)
+        state.pendingOnline = all.filter(r => r.estado === 'PENDIENTE');
     }
 }
 
