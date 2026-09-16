@@ -764,7 +764,13 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
 
         // Si no es simulación, crear preferencia de Mercado Pago
         if (!simulado) {
-            const preference = new Preference(client);
+            const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
+            if (!token) {
+                return res.status(400).json({ error: 'Falta configurar la variable MP_ACCESS_TOKEN en Vercel.' });
+            }
+
+            const dynamicClient = new MercadoPagoConfig({ accessToken: token });
+            const preference = new Preference(dynamicClient);
             const prefBody = {
                 items: [{
                     title: 'Seña Reserva Wadasaka Club',

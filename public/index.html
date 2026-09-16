@@ -606,15 +606,16 @@
                 })
             });
 
+            const rawText = await response.text();
             let preference = {};
             try {
-                preference = await response.json();
+                preference = JSON.parse(rawText);
             } catch (jsonErr) {
-                console.error("Error parseando respuesta JSON:", jsonErr);
+                console.error("Respuesta no válida de API:", rawText);
             }
 
             if (!response.ok) {
-                mostrarMensaje('error', preference.error || 'No se pudo crear el pago (Error ' + response.status + ').');
+                mostrarMensaje('error', preference.error || rawText || ('Error en el servidor (' + response.status + ').'));
                 await cargarCaptcha();
                 return;
             }
@@ -627,7 +628,7 @@
             }
         } catch (err) {
             console.error(err);
-            mostrarMensaje('error', err.message || 'Error en el servidor de pagos.');
+            mostrarMensaje('error', err.message || 'Error en la solicitud de reserva.');
             await cargarCaptcha();
         } finally {
             btnPay.disabled = false;
