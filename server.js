@@ -823,7 +823,11 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         res.json({ init_point: initPoint, id: preferenceId });
     } catch (error) {
         console.error('❌ Error al procesar reserva MP:', error.message || error);
-        res.status(500).json({ error: error.message || 'Error en el servidor de pagos. Verifica las credenciales de MercadoPago.' });
+        let msg = error.message || 'Error en la pasarela de pagos.';
+        if (msg.includes('UNAUTHORIZED') || msg.includes('policy') || msg.includes('unauthorized')) {
+            msg = 'MercadoPago bloqueó las credenciales de producción (Cuenta en revisión). Usa el Access Token de "Credenciales de Prueba" (TEST-...) para probar de inmediato.';
+        }
+        res.status(500).json({ error: msg });
     }
 });
 
