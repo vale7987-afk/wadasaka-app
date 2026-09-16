@@ -149,6 +149,7 @@ function esIpPrivada(ip) {
 }
 
 function accesoAdminPermitido(req) {
+    if (process.env.VERCEL) return true; // En Vercel permite acceso web al panel admin (protegido por contraseña en el frontend)
     const ip = normalizarIp(req.ip || req.socket.remoteAddress);
     if (ADMIN_ALLOWED_IPS.length === 0) return esIpPrivada(ip);
     return ADMIN_ALLOWED_IPS.includes(ip) || esIpPrivada(ip);
@@ -161,7 +162,7 @@ function requerirAccesoAdmin(req, res, next) {
 
 // Proteger endpoints críticos administrativos
 app.use(['/admin.html', '/api/audit', '/api/cashflow', '/api/cron/notificacion-diaria'], requerirAccesoAdmin);
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- INTEGRACIÓN GOOGLE CALENDAR ---
 async function getGoogleAuthToken(email, privateKey) {
@@ -1141,16 +1142,24 @@ app.get('/api/cron/notificacion-diaria', async (req, res) => {
     }
 });
 
-// Servir panel admin
+// Servir página principal y panel admin
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // Cargar memoria de archivos al iniciar
-reloadMemoryCache().then(() => {
+reloadMemoryCache();
+
+if (!process.env.VERCEL) {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
         console.log('🚀 Servidor WADASAKA CLUB corriendo en puerto ' + PORT);
         console.log('📖 Base de datos con soporte dual local/nube activa.');
     });
-});
+}
+
+module.exports = app;

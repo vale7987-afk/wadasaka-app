@@ -3,7 +3,10 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["public/**", "*.json"]
+      }
     }
   ],
   "routes": [
@@ -12,9 +15,6 @@
       "dest": "server.js"
     }
   ],
-  "env": {
-    "APP_URL": "@app_url"
-  },
   "crons": [
     {
       "path": "/api/cron/notificacion-diaria",
