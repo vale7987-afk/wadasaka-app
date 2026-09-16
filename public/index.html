@@ -294,7 +294,6 @@
             <select id="metodo-pago">
                 <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
                 <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaof)</option>
-                <option value="efectivo">💵 Reservar y Pagar en la Cancha (Efectivo)</option>
             </select>
         </div>
 
@@ -567,8 +566,6 @@
         sMetodoPago.addEventListener('change', () => {
             if (sMetodoPago.value === 'transferencia') {
                 btnPay.textContent = 'Confirmar Reserva por Transferencia Bancaria';
-            } else if (sMetodoPago.value === 'efectivo') {
-                btnPay.textContent = 'Confirmar Reserva (Pago en Cancha)';
             } else {
                 btnPay.textContent = 'Confirmar y Pagar Sena con Mercado Pago';
             }
