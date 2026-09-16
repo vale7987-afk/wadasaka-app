@@ -607,12 +607,14 @@
                 })
             });
 
-            const rawText = await response.text();
+            const rawText = (await response.text()).trim();
             let preference = {};
-            try {
-                preference = JSON.parse(rawText);
-            } catch (jsonErr) {
-                console.error("Respuesta no válida de API:", rawText);
+            if (rawText) {
+                try {
+                    preference = JSON.parse(rawText);
+                } catch (jsonErr) {
+                    console.error("Respuesta no es un JSON válido:", rawText);
+                }
             }
 
             if (!response.ok) {
@@ -624,7 +626,7 @@
             if (preference.init_point) {
                 window.location.href = preference.init_point;
             } else {
-                mostrarMensaje('error', preference.error || 'Error al conectar con Mercado Pago.');
+                mostrarMensaje('error', preference.error || 'No se pudo generar el enlace de pago con Mercado Pago.');
                 await cargarCaptcha();
             }
         } catch (err) {
