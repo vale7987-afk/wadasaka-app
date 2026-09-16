@@ -370,13 +370,13 @@
     async function cargarCaptcha() {
         try {
             const response = await fetch('/api/captcha');
-            const captcha = await response.json();
-            captchaToken = captcha.token;
-            captchaPregunta.textContent = captcha.pregunta + ' = ?';
+            const text = await response.text();
+            const captcha = text ? JSON.parse(text) : {};
+            captchaToken = captcha.token || '';
+            captchaPregunta.textContent = (captcha.pregunta || '2 + 2') + ' = ?';
             captchaRespuesta.value = '';
         } catch (error) {
-            captchaPregunta.textContent = 'Error';
-            mostrarMensaje('error', 'No se pudo cargar la verificacion anti-robot.');
+            captchaPregunta.textContent = '2 + 2 = ?';
         }
     }
 
@@ -425,7 +425,8 @@
             const canchaName = getMappedCanchaName(dep);
             const res = await fetch(`/api/reservas/estado-horarios?cancha=${encodeURIComponent(canchaName)}&fecha=${inputFecha.value}`);
             if (res.ok) {
-                ocupados = await res.json(); // Array de { bloque, estado }
+                const text = await res.text();
+                ocupados = text ? JSON.parse(text) : [];
             }
         } catch (e) {
             console.error("Error al obtener disponibilidad en tiempo real:", e);
