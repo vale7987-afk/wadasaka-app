@@ -32,6 +32,13 @@ async function getDb() {
     }
 }
 
+function getStoragePath(collectionName) {
+    if (process.env.VERCEL) {
+        return path.join('/tmp', `${collectionName}.json`);
+    }
+    return path.join(__dirname, `${collectionName}.json`);
+}
+
 // Carga datos desde Mongo o desde archivo local .json
 async function dbLoad(collectionName, defaultVal = []) {
     const database = await getDb();
@@ -47,21 +54,26 @@ async function dbLoad(collectionName, defaultVal = []) {
         }
     }
     
-    // Fallback a archivos locales
-    const filePath = path.join(__dirname, `${collectionName}.json`);
+    // Fallback a archivos en /tmp o local
+    const filePath = getStoragePath(collectionName);
     if (fs.existsSync(filePath)) {
         try {
             const data = fs.readFileSync(filePath, 'utf-8');
             return JSON.parse(data);
         } catch (e) {
-            console.error(`⚠️ Error leyendo archivo local ${collectionName}.json:`, e.message);
+            console.error(`⚠️ Error leyendo archivo ${collectionName}.json:`, e.message);
         }
     }
-    
-    // Si no existe, guardar el valor por defecto
-    if (defaultVal.length > 0) {
-        fs.writeFileSync(filePath, JSON.stringify(defaultVal, null, 2));
+
+    // Si es Vercel y no existe en /tmp, intentar leer semilla desde el directorio raíz __dirname
+    const seedPath = path.join(__dirname, `${collectionName}.json`);
+    if (fs.existsSync(seedPath)) {
+        try {
+            const data = fs.readFileSync(seedPath, 'utf-8');
+            return JSON.parse(data);
+        } catch (e) {}
     }
+    
     return defaultVal;
 }
 
@@ -82,9 +94,13 @@ async function dbSave(collectionName, data) {
         }
     }
     
-    // Fallback a archivos locales
-    const filePath = path.join(__dirname, `${collectionName}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    // Fallback a archivos escribibles (/tmp en Vercel o local)
+    try {
+        const filePath = getStoragePath(collectionName);
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    } catch (e) {
+        console.error(`⚠️ Error escribiendo archivo local (${collectionName}):`, e.message);
+    }
 }
 
 // --- VARIABLES GLOBALES EN MEMORIA ---
