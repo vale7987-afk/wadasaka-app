@@ -346,7 +346,7 @@ async function cargarEventosCalendario(deporte) {
     if (cache && cache.expires > Date.now()) return cache.eventos;
 
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
         if (!response.ok) throw new Error(`Calendario ${deporte}: ${response.status}`);
         const text = await response.text();
         const eventos = parseIcs(text);
@@ -1051,7 +1051,9 @@ app.post('/api/pagos/webhook', async (req, res) => {
     
     if (action === 'payment.created' || action === 'payment.updated') {
         try {
-            const payment = new Payment(client);
+            const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
+            const mpClient = new MercadoPagoConfig({ accessToken: token });
+            const payment = new Payment(mpClient);
             const paymentData = await payment.get({ id: data.id });
             
             console.log('💳 Estado de Pago Mercado Pago:', paymentData.status);
