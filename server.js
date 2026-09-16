@@ -757,10 +757,15 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         let preferenceId = null;
         let initPoint = null;
 
-        // Determinar URL pública del servidor dinámicamente
-        const protocol = req.headers['x-forwarded-proto'] || 'https';
-        const host = req.headers.host || 'wadasaka-app-club.vercel.app';
-        const currentUrl = process.env.APP_URL || `${protocol}://${host}`;
+        // Determinar URL pública HTTPS del servidor dinámicamente
+        const host = req.headers['x-forwarded-host'] || req.headers.host || 'wadasaka-app-club.vercel.app';
+        let currentUrl = process.env.APP_URL;
+        if (!currentUrl) {
+            currentUrl = host.includes('localhost') ? `http://${host}` : `https://${host}`;
+        }
+        if (!currentUrl.startsWith('http')) {
+            currentUrl = `https://${currentUrl}`;
+        }
 
         // Si no es simulación, crear preferencia de Mercado Pago
         if (!simulado) {
