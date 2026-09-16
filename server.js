@@ -1093,9 +1093,21 @@ app.post('/api/pagos/webhook', async (req, res) => {
             
             if (paymentData.status === 'approved') {
                 const preferenceId = paymentData.preference_id;
+                const transactionAmount = paymentData.transaction_amount;
                 
                 const reservas = await dbLoad('reservas');
-                const reserva = reservas.find(r => r.preferenceId === preferenceId);
+                let reserva = reservas.find(r => r.preferenceId && r.preferenceId === preferenceId);
+                
+                // Fallback: Si la transferencia llegó por Alias/CVU a la cuenta sin preferenceId, buscar la reserva PENDIENTE más reciente que coincida en el monto
+                if (!reserva) {
+                    const ahora = Date.now();
+                    reserva = reservas.find(r => {
+                        if (r.estado !== 'PENDIENTE') return false;
+                        const msPassed = ahora - new Date(r.timestamp).getTime();
+                        if (msPassed > 30 * 60 * 1000) return false; // Creada en los últimos 30 min
+                        return Math.abs(Number(r.senaPagada) - Number(transactionAmount)) < 1;
+                    });
+                }
                 
                 if (reserva && reserva.estado !== 'CONFIRMADO') {
                     reserva.estado = 'CONFIRMADO';
@@ -1109,11 +1121,11 @@ app.post('/api/pagos/webhook', async (req, res) => {
                     cashflow.push({
                         id: 'c_' + Date.now(),
                         timestamp: new Date().toISOString(),
-                        concepto: `Seña Web Aprobada (MP): ${reserva.cancha} (${reserva.nombre})`,
+                        concepto: `Seña Aprobada Auto (MP/Transferencia): ${reserva.cancha} (${reserva.nombre})`,
                         tipo: 'canchas',
                         metodo: 'transferencia',
                         monto: reserva.senaPagada,
-                        empleado: 'Integración Online'
+                        empleado: 'Integración Automática MP'
                     });
                     await dbSave('cashflow', cashflow);
 
@@ -1123,7 +1135,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                     // Enviar correos
                     await enviarNotificaciones(reserva);
                     
-                    console.log('✅ Reserva Web Confirmada Exitosamente:', preferenceId);
+                    console.log('✅ Reserva Confirmada Automáticamente por Mercado Pago / Transferencia:', reserva.id);
                 }
             }
         } catch (error) {
