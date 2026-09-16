@@ -293,7 +293,7 @@
             <label>Metodo de Pago de la Sena:</label>
             <select id="metodo-pago">
                 <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
-                <option value="transferencia">🏦 Transferencia Bancaria (Alias: WADASAKA.CLUB)</option>
+                <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaof)</option>
                 <option value="efectivo">💵 Reservar y Pagar en la Cancha (Efectivo)</option>
             </select>
         </div>
@@ -548,7 +548,7 @@
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'transferencia') {
-            mostrarMensaje('success', '🏦 ¡Reserva Solicitada con Éxito! Envía la seña por transferencia al Alias: WADASAKA.CLUB para confirmar tu turno.');
+            mostrarMensaje('success', '🏦 ¡Reserva Solicitada con Éxito! Envía la seña por transferencia al Alias: wadasakaof para confirmar tu turno.');
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {
