@@ -112,8 +112,12 @@ async function fetchBookings() {
         // Filtrar reservas locales
         state.bookings = all.filter(r => r.estado === 'CONFIRMADO');
         
-        // Filtrar reservas que están PENDIENTES (por transferencia o hold)
-        state.pendingOnline = all.filter(r => r.estado === 'PENDIENTE');
+        // Filtrar reservas que están PENDIENTES (por transferencia o hold) dentro de los 15 min de retención
+        state.pendingOnline = all.filter(r => {
+            if (r.estado !== 'PENDIENTE') return false;
+            const msPassed = Date.now() - new Date(r.timestamp).getTime();
+            return msPassed < (15 * 60 * 1000);
+        });
     }
 }
 
@@ -1411,27 +1415,34 @@ function renderPendingOnlineList() {
     state.pendingOnline.forEach(b => {
         const endTime = minutesToTime(timeToMinutes(b.horaInicio) + (b.duracionHoras * 60));
         const msPassed = Date.now() - new Date(b.timestamp).getTime();
-        const secondsRemaining = Math.max(0, Math.floor((300000 - msPassed) / 1000));
+        const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
+        const secondsRemaining = Math.max(0, Math.floor((maxHoldMs - msPassed) / 1000));
         const minRem = Math.floor(secondsRemaining / 60);
         const secRem = secondsRemaining % 60;
+        const refCode = b.codigoReferencia || 'WADA-ONLINE';
+        const metodoLabel = b.pagoMetodo === 'transferencia' ? '🏦 Transferencia (wadasakaof)' : '💳 Mercado Pago';
 
         const card = document.createElement('div');
         card.className = 'online-booking-item';
         card.innerHTML = `
             <div class="online-booking-details">
-                <span class="online-booking-client">${b.nombre} ${b.apellido} (WEB)</span>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <span style="background:var(--accent); color:#fff; font-weight:800; padding:2px 8px; border-radius:4px; font-size:0.85rem;">${refCode}</span>
+                    <span class="online-booking-client" style="font-weight:700;">${b.nombre} ${b.apellido}</span>
+                    <span style="font-size:0.8rem; opacity:0.8;">(${metodoLabel})</span>
+                </div>
                 <span class="online-booking-meta">
-                    <strong>${b.cancha}</strong> | ${formatDateSpanish(b.fecha)} | <strong>${b.horaInicio} a ${endTime} (${b.duracionHoras}h)</strong>
+                    <strong>${b.cancha}</strong> | ${formatDateSpanish(b.fecha)} | <strong>${b.horaInicio} a ${endTime} (${b.duracionHoras}h)</strong> | 📞 ${b.telefono || 'Sin tel'}
                 </span>
-                <span class="online-booking-meta" style="color:var(--state-reservado); font-weight:600;">
+                <span class="online-booking-meta" style="color:var(--state-reservado); font-weight:600; margin-top:2px;">
                     ⏳ Tiempo restante de Hold: ${minRem}:${secRem.toString().padStart(2, '0')}
                 </span>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                <span class="online-booking-price">Seña: ${formatCurrency(b.senaPagada)}</span>
-                <div class="online-booking-actions">
-                    <button class="btn btn-danger btn-small" onclick="cancelWebHold('${b.id}')">Liberar</button>
-                    <button class="btn btn-primary btn-small" onclick="approveWebHold('${b.id}')">Aprobar Pago</button>
+                <span class="online-booking-price" style="font-size:1.1rem; font-weight:700; color:var(--accent);">Seña: ${formatCurrency(b.senaPagada)}</span>
+                <div class="online-booking-actions" style="display:flex; gap:6px;">
+                    <button class="btn btn-danger btn-small" onclick="cancelWebHold('${b.id}')">Liberar Turno</button>
+                    <button class="btn btn-success btn-small" style="font-weight:700; background:#16a34a; color:#fff;" onclick="approveWebHold('${b.id}')">Aprobar Seña</button>
                 </div>
             </div>
         `;

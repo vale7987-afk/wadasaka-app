@@ -451,13 +451,14 @@ async function verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloq
             const inRange = (bloqueActual >= rStart && bloqueActual < rStart + (rQtyBlocks * 0.5));
             if (!inRange) return false;
 
-            // Lógica de hold temporal: si está pendiente, solo choca si tiene menos de 5 min
+            // Lógica de hold temporal: si está pendiente, solo choca si tiene menos de 15 min
             let holding = false;
             if (r.estado === 'CONFIRMADO') {
                 holding = true;
             } else if (r.estado === 'PENDIENTE') {
                 const msPassed = Date.now() - new Date(r.timestamp).getTime();
-                if (msPassed < 5 * 60 * 1000) {
+                const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
+                if (msPassed < maxHoldMs) {
                     holding = true;
                 }
             }
@@ -727,9 +728,9 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
         if (r.estado === 'CONFIRMADO') {
             estadoReal = 'CONFIRMADO';
         } else if (r.estado === 'PENDIENTE') {
-            // Un hold está activo si tiene menos de 5 minutos
+            // Un hold está activo si tiene menos de 15 minutos
             const msPassed = Date.now() - new Date(r.timestamp).getTime();
-            if (msPassed < 5 * 60 * 1000) {
+            if (msPassed < 15 * 60 * 1000) {
                 estadoReal = 'PENDIENTE';
             }
         }
@@ -1133,7 +1134,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                     reserva = reservas.find(r => {
                         if (r.estado !== 'PENDIENTE') return false;
                         const msPassed = ahora - new Date(r.timestamp).getTime();
-                        if (msPassed > 30 * 60 * 1000) return false; // Creada en los últimos 30 min
+                        if (msPassed > 15 * 60 * 1000) return false; // Creada en los últimos 15 min
                         return Math.abs(Number(r.senaPagada) - Number(transactionAmount)) < 1;
                     });
                 }
