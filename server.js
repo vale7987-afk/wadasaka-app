@@ -39,7 +39,41 @@ function getStoragePath(collectionName) {
     return path.join(__dirname, `${collectionName}.json`);
 }
 
-// Carga datos desde Mongo o desde archivo local .json
+// Cloud Sync REST fallback para compartir estado en tiempo real entre instancias de Vercel
+const REST_CLOUD_ID = 'ff808181a09d98f701a0d0e16c4902de';
+const REST_CLOUD_URL = `https://api.restful-api.dev/objects/${REST_CLOUD_ID}`;
+
+async function syncCloudLoad(collectionName) {
+    if (collectionName !== 'reservas') return null;
+    try {
+        const response = await fetch(REST_CLOUD_URL, { signal: AbortSignal.timeout(2500) });
+        if (response.ok) {
+            const json = await response.json();
+            if (json && json.data && Array.isArray(json.data.reservas)) {
+                return json.data.reservas;
+            }
+        }
+    } catch (e) {
+        console.error("Cloud sync load error:", e.message);
+    }
+    return null;
+}
+
+async function syncCloudSave(collectionName, data) {
+    if (collectionName !== 'reservas') return;
+    try {
+        await fetch(REST_CLOUD_URL, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'wadasaka_reservas', data: { reservas: data } }),
+            signal: AbortSignal.timeout(2500)
+        });
+    } catch (e) {
+        console.error("Cloud sync save error:", e.message);
+    }
+}
+
+// Carga datos desde Mongo o desde archivo local .json con fallback a Cloud Sync
 async function dbLoad(collectionName, defaultVal = []) {
     const database = await getDb();
     if (database) {
@@ -54,6 +88,12 @@ async function dbLoad(collectionName, defaultVal = []) {
         }
     }
     
+    // Cloud sync fallback para Vercel
+    if (collectionName === 'reservas') {
+        const cloudData = await syncCloudLoad(collectionName);
+        if (cloudData) return cloudData;
+    }
+
     // Fallback a archivos en /tmp o local
     const filePath = getStoragePath(collectionName);
     if (fs.existsSync(filePath)) {
@@ -77,14 +117,13 @@ async function dbLoad(collectionName, defaultVal = []) {
     return defaultVal;
 }
 
-// Guarda datos en Mongo o en archivo local .json
+// Guarda datos en Mongo o en archivo local .json con fallback a Cloud Sync
 async function dbSave(collectionName, data) {
     const database = await getDb();
     if (database) {
         try {
             await database.collection(collectionName).deleteMany({});
             if (data.length > 0) {
-                // Hacer una copia profunda libre de referencias
                 const cleanData = JSON.parse(JSON.stringify(data));
                 await database.collection(collectionName).insertMany(cleanData);
             }
@@ -100,6 +139,11 @@ async function dbSave(collectionName, data) {
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     } catch (e) {
         console.error(`⚠️ Error escribiendo archivo local (${collectionName}):`, e.message);
+    }
+
+    // Cloud sync fallback para Vercel
+    if (collectionName === 'reservas') {
+        await syncCloudSave(collectionName, data);
     }
 }
 
@@ -737,7 +781,12 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
 
         if (estadoReal) {
             for (let i = 0; i < qtyBlocks; i++) {
-                ocupados.push({ bloque: start + (i * 0.5), estado: estadoReal });
+                ocupados.push({
+                    bloque: start + (i * 0.5),
+                    estado: estadoReal,
+                    horaInicio: r.horaInicio,
+                    esInicio: (i === 0)
+                });
             }
         }
     });

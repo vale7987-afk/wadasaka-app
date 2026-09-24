@@ -462,6 +462,7 @@
 
             // Determinar si choca con alguna reserva (confirmed o hold)
             let estadoChoque = null; // null: libre, 'CONFIRMADO', 'PENDIENTE'
+            let esInicioExacto = false;
 
             for (let i = 0; i < cantBloques; i++) {
                 const bVal = startBloque + (i * 0.5);
@@ -470,9 +471,11 @@
                 if (match) {
                     if (match.estado === 'CONFIRMADO') {
                         estadoChoque = 'CONFIRMADO';
+                        if (match.horaInicio === hora || match.esInicio) esInicioExacto = true;
                         break; // Bloqueo total
                     } else if (match.estado === 'PENDIENTE') {
                         estadoChoque = 'PENDIENTE'; // Hold temporal
+                        if (match.horaInicio === hora) esInicioExacto = true;
                     }
                 }
             }
@@ -484,11 +487,16 @@
 
             if (estadoChoque === 'CONFIRMADO') {
                 btn.className += ' reservado';
-                btn.textContent = `${hora} (Ocupado)`;
+                btn.textContent = esInicioExacto ? `${hora} (Ocupado)` : `${hora} (No disp.)`;
                 btn.disabled = true;
             } else if (estadoChoque === 'PENDIENTE') {
-                btn.className += ' hold';
-                btn.textContent = `${hora} (En espera)`;
+                if (esInicioExacto) {
+                    btn.className += ' hold';
+                    btn.textContent = `${hora} (En espera)`;
+                } else {
+                    btn.className += ' reservado';
+                    btn.textContent = `${hora} (No disp.)`;
+                }
                 btn.disabled = true;
             } else {
                 btn.textContent = hora;
