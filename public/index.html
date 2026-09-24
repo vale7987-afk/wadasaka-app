@@ -452,6 +452,14 @@
             // Verificar si el bloque cabe sin pasarse de las 24 hs
             if (startBloque + duracionSeleccionada > 24) return;
 
+            // Si la fecha seleccionada es HOY, ignorar horarios cuya hora de inicio ya transcurrió
+            const esHoy = (inputFecha.value === getFechaHoyLocal());
+            if (esHoy) {
+                const ahora = new Date();
+                const bloqueAhora = ahora.getHours() + (ahora.getMinutes() / 60);
+                if (startBloque < bloqueAhora) return;
+            }
+
             // Determinar si choca con alguna reserva (confirmed o hold)
             let estadoChoque = null; // null: libre, 'CONFIRMADO', 'PENDIENTE'
 
@@ -596,7 +604,15 @@
     sDuracion.addEventListener('change', refrescarFormulario);
     inputFecha.addEventListener('change', refrescarFormulario);
 
-    const hoy = new Date().toISOString().split('T')[0];
+    function getFechaHoyLocal() {
+        const d = new Date();
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    const hoy = getFechaHoyLocal();
     inputFecha.value = hoy;
     inputFecha.min = hoy;
     refrescarFormulario();
