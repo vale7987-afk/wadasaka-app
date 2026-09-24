@@ -399,9 +399,10 @@
     async function refrescarFormulario() {
         const dep = sCancha.value;
         const duracionActual = parseFloat(sDuracion.value) || 1;
+        const horarioSeleccionadoPrevio = inputHorario.value;
+
         sDuracion.innerHTML = '';
         gridHorarios.innerHTML = '';
-        inputHorario.value = '';
 
         if (dep === 'padel') {
             sDuracion.innerHTML = "<option value='1'>1 hora</option><option value='1.5'>1 hora y media</option><option value='2'>2 horas</option>";
@@ -441,6 +442,8 @@
             console.error("Error al obtener disponibilidad en tiempo real:", e);
         }
 
+        let seleccionValidaAun = false;
+
         // Renderizar botones
         horasPosibles.forEach(hora => {
             const startBloque = timeToMinutes(hora) / 60;
@@ -470,15 +473,23 @@
             btn.type = 'button';
             btn.className = 'btn-bloque';
             btn.value = hora;
-            btn.textContent = hora;
 
             if (estadoChoque === 'CONFIRMADO') {
                 btn.className += ' reservado';
+                btn.textContent = `${hora} (Ocupado)`;
                 btn.disabled = true;
             } else if (estadoChoque === 'PENDIENTE') {
                 btn.className += ' hold';
+                btn.textContent = `${hora} (En espera)`;
                 btn.disabled = true;
             } else {
+                btn.textContent = hora;
+                if (hora === horarioSeleccionadoPrevio) {
+                    btn.classList.add('selected');
+                    inputHorario.value = hora;
+                    seleccionValidaAun = true;
+                }
+
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.btn-bloque').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
@@ -490,6 +501,12 @@
 
             gridHorarios.appendChild(btn);
         });
+
+        if (!seleccionValidaAun && horarioSeleccionadoPrevio) {
+            inputHorario.value = '';
+            if (holdInterval) clearInterval(holdInterval);
+            holdTimer.style.display = 'none';
+        }
 
         hacerCalculos();
     }
@@ -585,6 +602,9 @@
     refrescarFormulario();
     cargarCaptcha();
     aplicarEstadoPagoDesdeUrl();
+
+    // Polling en tiempo real cada 4 segundos para reflejar turnos en espera (amarillo) e independizar dispositivos
+    setInterval(refrescarFormulario, 4000);
 
     document.getElementById('form-reserva').addEventListener('submit', async (e) => {
         e.preventDefault();

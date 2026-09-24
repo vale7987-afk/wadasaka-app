@@ -840,9 +840,8 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         
         // Calcular importes sugeridos y seña
         const importes = obtenerImportes(cancha, duracionHoras);
-        const esConfirmado = (metodoPago === 'mercadopago' && !esSimulado);
 
-        // Crear nueva reserva
+        // Crear nueva reserva (inicia siempre en PENDIENTE hasta acreditación MP o aprobación manual)
         const nuevaReserva = {
             id: Date.now(),
             nombre,
@@ -853,7 +852,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
             fecha,
             horaInicio,
             duracionHoras,
-            estado: esConfirmado ? 'CONFIRMADO' : 'PENDIENTE',
+            estado: 'PENDIENTE',
             mercadoPagoId: null,
             preferenceId,
             codigoReferencia,
