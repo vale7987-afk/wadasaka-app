@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Wadasaka Club - Lógica del Panel de Administración (API)
+   Wadasaka Club - LÃ³gica del Panel de AdministraciÃ³n (API)
    ========================================================================== */
 
 let state = {
@@ -13,10 +13,10 @@ let state = {
         cancha_padel: 30000
     },
     canchas: [
-        { id: 'cancha_f5_a', name: 'Fútbol 5 - Cancha A', type: 'f5' },
-        { id: 'cancha_f5_b', name: 'Fútbol 5 - Cancha B', type: 'f5' },
-        { id: 'cancha_f8', name: 'Fútbol 8 (Fusión A+B)', type: 'f8' },
-        { id: 'cancha_padel', name: 'Cancha Pádel', type: 'padel' }
+        { id: 'cancha_f5_a', name: 'FÃºtbol 5 - Cancha A', type: 'f5' },
+        { id: 'cancha_f5_b', name: 'FÃºtbol 5 - Cancha B', type: 'f5' },
+        { id: 'cancha_f8', name: 'FÃºtbol 8 (FusiÃ³n A+B)', type: 'f8' },
+        { id: 'cancha_padel', name: 'Cancha PÃ¡del', type: 'padel' }
     ],
     bookings: [],
     pendingOnline: [], // Se carga de las reservas PENDIENTES con menos de 5 min
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(updateClock, 1000);
     renderApp();
     
-    // Polling de actualización de datos en tiempo real cada 10 segundos
+    // Polling de actualizaciÃ³n de datos en tiempo real cada 10 segundos
     setInterval(async () => {
         await refreshRealtimeData();
         renderApp();
@@ -71,14 +71,14 @@ async function loadInitialData() {
             fetchAuditLog()
         ]);
         
-        // Cargar link de código fuente en Vercel
+        // Cargar link de cÃ³digo fuente en Vercel
         const btnViewSource = document.getElementById('btn-view-source');
         if (btnViewSource) {
-            btnViewSource.href = window.location.origin; // O un link de Github si está configurado
+            btnViewSource.href = window.location.origin; // O un link de Github si estÃ¡ configurado
         }
     } catch (e) {
         console.error("Error al cargar los datos del servidor:", e);
-        showToast("Error de conexión con el servidor. Usando datos locales.", "error");
+        showToast("Error de conexiÃ³n con el servidor. Usando datos locales.", "error");
     }
 }
 
@@ -112,7 +112,7 @@ async function fetchBookings() {
         // Filtrar reservas locales
         state.bookings = all.filter(r => r.estado === 'CONFIRMADO');
         
-        // Filtrar reservas que están PENDIENTES (por transferencia o hold) dentro de los 15 min de retención
+        // Filtrar reservas que estÃ¡n PENDIENTES (por transferencia o hold) dentro de los 15 min de retenciÃ³n
         state.pendingOnline = all.filter(r => {
             if (r.estado !== 'PENDIENTE') return false;
             const msPassed = Date.now() - new Date(r.timestamp).getTime();
@@ -152,7 +152,7 @@ async function postAudit(accion, detalles) {
         });
         await fetchAuditLog();
     } catch (e) {
-        console.error("Error al registrar auditoría:", e);
+        console.error("Error al registrar auditorÃ­a:", e);
     }
 }
 
@@ -252,7 +252,7 @@ function setupEventListeners() {
     document.getElementById('btn-sim-booking-f8').addEventListener('click', () => simulateWebBooking('futbol8'));
     document.getElementById('btn-sim-booking-padel').addEventListener('click', () => simulateWebBooking('padel'));
 
-    // Configuración: Guardar tarifas
+    // ConfiguraciÃ³n: Guardar tarifas
     const formPrices = document.getElementById('form-prices-canchas');
     if (formPrices) {
         formPrices.addEventListener('submit', async (e) => {
@@ -273,7 +273,7 @@ function setupEventListeners() {
 
             if (res.ok) {
                 state.prices = prices;
-                await postAudit('Modificar Tarifas', `F5=$${prices.cancha_f5}, F8=$${prices.cancha_f8}, Pádel=$${prices.cancha_padel}`);
+                await postAudit('Modificar Tarifas', `F5=$${prices.cancha_f5}, F8=$${prices.cancha_f8}, PÃ¡del=$${prices.cancha_padel}`);
                 showToast('Tarifas actualizadas', 'success');
                 renderApp();
             } else {
@@ -343,7 +343,7 @@ function setRole(roleKey) {
         }
     }
     
-    postAudit('Cambio de Rol', `Sesión iniciada como ${user.name}`);
+    postAudit('Cambio de Rol', `SesiÃ³n iniciada como ${user.name}`);
     showToast(`Operando como: ${user.name}`, 'success');
     renderApp();
 }
@@ -427,7 +427,7 @@ function renderDashboard() {
     
     if (stockAlertsEl) stockAlertsEl.textContent = lowStockCount;
     if (stockSubtextEl) {
-        stockSubtextEl.textContent = `${lowStockCount} producto(s) bajo mínimo`;
+        stockSubtextEl.textContent = `${lowStockCount} producto(s) bajo mÃ­nimo`;
     }
 
     if (alertCard) {
@@ -519,7 +519,7 @@ function renderDashboardCanchasStatus() {
                 </div>
                 ${clientInfoHTML}
                 <div class="cancha-next-booking">
-                    ${nextBooking ? `Próximo: ${nextBooking.nombre} (${nextBooking.horaInicio} hs)` : 'Sin más turnos hoy'}
+                    ${nextBooking ? `PrÃ³ximo: ${nextBooking.nombre} (${nextBooking.horaInicio} hs)` : 'Sin mÃ¡s turnos hoy'}
                 </div>
             </div>
         `;
@@ -590,7 +590,7 @@ function renderDashboardLowStock() {
             <div class="low-stock-item">
                 <div class="low-stock-info">
                     <span class="low-stock-name">${p.name}</span>
-                    <span class="low-stock-qty">Stock: ${p.stock} (Mín: ${p.minStock})</span>
+                    <span class="low-stock-qty">Stock: ${p.stock} (MÃ­n: ${p.minStock})</span>
                 </div>
                 <button class="btn btn-secondary btn-small" onclick="quickRestockProduct('${p.id}')">Reponer +10</button>
             </div>
@@ -617,7 +617,7 @@ window.quickRestockProduct = async function(productId) {
             renderApp();
         }
     } catch (e) {
-        showToast('Error de conexión', 'error');
+        showToast('Error de conexiÃ³n', 'error');
     }
 };
 
@@ -720,7 +720,7 @@ function renderAgendaGrid() {
                 return;
             }
 
-            // Conflicto de Fusión cruzada F5/F8
+            // Conflicto de FusiÃ³n cruzada F5/F8
             const conflictingBooking = checkConflictForGrid(cancha.id, todayStr, timeSlot);
             
             if (conflictingBooking) {
@@ -729,9 +729,9 @@ function renderAgendaGrid() {
                 divConflict.className = 'grid-cell-booking blocked-conflict';
                 
                 const isConfirmed = conflictingBooking.estado === 'CONFIRMADO';
-                const conflictSource = conflictingBooking.cancha.includes('Fútbol 8') || conflictingBooking.cancha.includes('Futbol 8') ? 'Fútbol 8' : 'Fútbol 5';
+                const conflictSource = conflictingBooking.cancha.includes('FÃºtbol 8') || conflictingBooking.cancha.includes('Futbol 8') ? 'FÃºtbol 8' : 'FÃºtbol 5';
                 divConflict.innerHTML = `
-                    <div style="font-weight:600; opacity:0.7;">Fusión Cruzada</div>
+                    <div style="font-weight:600; opacity:0.7;">FusiÃ³n Cruzada</div>
                     <div style="font-size:0.7rem; opacity:0.6;">Cancha ${conflictSource} (${isConfirmed ? 'Confirmado' : 'Espera'})</div>
                 `;
                 
@@ -821,7 +821,7 @@ function openBookingModalForEdit(bookingId) {
     
     document.getElementById('booking-cliente').value = `${booking.nombre} ${booking.apellido}`.trim();
     document.getElementById('booking-telefono').value = booking.telefono || '';
-    document.getElementById('booking-seña').value = booking.senaPagada || 0;
+    document.getElementById('booking-seÃ±a').value = booking.senaPagada || 0;
     
     const statusSelect = document.getElementById('booking-estado');
     statusSelect.value = booking.estado === 'CONFIRMADO' ? 'pagado' : 'reservado';
@@ -874,7 +874,7 @@ function configureDurationOptions(canchaId, date, startTime, excludeBookingId = 
     const cancha = state.canchas.find(c => c.id === canchaId);
 
     if (cancha && (cancha.type === 'f5' || cancha.type === 'f8')) {
-        // Fútbol fijos de 1 hora
+        // FÃºtbol fijos de 1 hora
         if (finalMaxHours >= 1) {
             const opt = document.createElement('option');
             opt.value = "1";
@@ -889,7 +889,7 @@ function configureDurationOptions(canchaId, date, startTime, excludeBookingId = 
             durationSelect.disabled = true;
         }
     } else {
-        // Pádel: 1, 1.5, 2
+        // PÃ¡del: 1, 1.5, 2
         durationSelect.disabled = false;
         const possibleDurations = [
             { val: 1, text: '1 Hora' },
@@ -956,12 +956,12 @@ async function saveBookingForm(e) {
     const estado = document.getElementById('booking-estado').value === 'pagado' ? 'CONFIRMADO' : 'PENDIENTE';
     const clienteCompleto = document.getElementById('booking-cliente').value.trim();
     const telefono = document.getElementById('booking-telefono').value.trim();
-    const senaPagada = parseFloat(document.getElementById('booking-seña').value) || 0;
+    const senaPagada = parseFloat(document.getElementById('booking-seÃ±a').value) || 0;
     const pagoMetodo = document.getElementById('booking-pago-metodo').value;
     const totalTurno = parseFloat(document.getElementById('booking-final-price').value) || 0;
 
     if (duracionHoras <= 0) {
-        showToast('El turno no posee duración válida', 'error');
+        showToast('El turno no posee duraciÃ³n vÃ¡lida', 'error');
         return;
     }
 
@@ -991,14 +991,14 @@ async function saveBookingForm(e) {
     try {
         let res;
         if (idEdit) {
-            // Edición
+            // EdiciÃ³n
             res = await fetch(`/api/reservas/${idEdit}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bookingData)
             });
         } else {
-            // Creación manual
+            // CreaciÃ³n manual
             res = await fetch('/api/reservas/manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1025,7 +1025,7 @@ async function deleteBooking() {
     const idEdit = document.getElementById('booking-id-edit').value;
     if (!idEdit) return;
 
-    if (confirm('¿Estás seguro de que deseas eliminar este turno?')) {
+    if (confirm('Â¿EstÃ¡s seguro de que deseas eliminar este turno?')) {
         try {
             const res = await fetch(`/api/reservas/${idEdit}`, { method: 'DELETE' });
             if (res.ok) {
@@ -1038,7 +1038,7 @@ async function deleteBooking() {
                 showToast('Error al eliminar reserva', 'error');
             }
         } catch (e) {
-            showToast('Error de conexión', 'error');
+            showToast('Error de conexiÃ³n', 'error');
         }
     }
 }
@@ -1109,7 +1109,7 @@ function renderCart() {
     container.innerHTML = '';
 
     if (cart.length === 0) {
-        container.innerHTML = '<div class="empty-cart-message">El carrito está vacío</div>';
+        container.innerHTML = '<div class="empty-cart-message">El carrito estÃ¡ vacÃ­o</div>';
         totalEl.textContent = '$0.00';
         return;
     }
@@ -1157,7 +1157,7 @@ window.updateCartQty = function(productId, delta) {
 
 async function checkoutBuffet() {
     if (cart.length === 0) {
-        showToast('Carrito vacío', 'error');
+        showToast('Carrito vacÃ­o', 'error');
         return;
     }
 
@@ -1307,7 +1307,7 @@ async function saveProductForm(e) {
             renderApp();
         }
     } catch (e) {
-        showToast('Error de conexión', 'error');
+        showToast('Error de conexiÃ³n', 'error');
     }
 }
 
@@ -1315,7 +1315,7 @@ async function deleteProduct() {
     const idEdit = document.getElementById('product-id-edit').value;
     if (!idEdit || state.currentRole !== 'owner') return;
 
-    if (confirm('¿Eliminar producto permanentemente?')) {
+    if (confirm('Â¿Eliminar producto permanentemente?')) {
         const updated = state.products.filter(p => p.id !== idEdit);
         try {
             const res = await fetch('/api/buffet/productos', {
@@ -1332,7 +1332,7 @@ async function deleteProduct() {
                 renderApp();
             }
         } catch (e) {
-            showToast('Error de conexión', 'error');
+            showToast('Error de conexiÃ³n', 'error');
         }
     }
 }
@@ -1350,22 +1350,22 @@ async function simulateWebBooking(deporte) {
     const min = Math.random() > 0.5 ? '00' : '30';
     const horaInicio = `${hr}:${min}`;
 
-    let cancha = 'Cancha de Pádel';
+    let cancha = 'Cancha de PÃ¡del';
     let duracion = 1.5;
     let sena = 7000;
 
     if (deporte === 'futbol5') {
-        cancha = 'Cancha de Fútbol 5';
+        cancha = 'Cancha de FÃºtbol 5';
         duracion = 1;
         sena = 10000;
     } else if (deporte === 'futbol8') {
-        cancha = 'Cancha de Fútbol 8';
+        cancha = 'Cancha de FÃºtbol 8';
         duracion = 1;
         sena = 15000;
     }
 
     const payload = {
-        title: 'Seña Reserva Wadasaka Club - ' + deporte.toUpperCase(),
+        title: 'SeÃ±a Reserva Wadasaka Club - ' + deporte.toUpperCase(),
         price: sena,
         quantity: 1,
         nombre: clientName,
@@ -1392,7 +1392,7 @@ async function simulateWebBooking(deporte) {
             await refreshRealtimeData();
             renderApp();
         } else {
-            showToast('Choque de turnos en simulación', 'error');
+            showToast('Choque de turnos en simulaciÃ³n', 'error');
         }
     } catch (e) {
         showToast('Error al conectar con la API', 'error');
@@ -1415,12 +1415,12 @@ function renderPendingOnlineList() {
     state.pendingOnline.forEach(b => {
         const endTime = minutesToTime(timeToMinutes(b.horaInicio) + (b.duracionHoras * 60));
         const msPassed = Date.now() - new Date(b.timestamp).getTime();
-        const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
+        const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retenciÃ³n
         const secondsRemaining = Math.max(0, Math.floor((maxHoldMs - msPassed) / 1000));
         const minRem = Math.floor(secondsRemaining / 60);
         const secRem = secondsRemaining % 60;
         const refCode = b.codigoReferencia || 'WADA-ONLINE';
-        const metodoLabel = b.pagoMetodo === 'transferencia' ? '🏦 Transferencia (wadasakaof)' : '💳 Mercado Pago';
+        const metodoLabel = b.pagoMetodo === 'transferencia' ? '🏦 Transferencia → alias: wadasakaya' : '💳 Mercado Pago';
 
         const card = document.createElement('div');
         card.className = 'online-booking-item';
@@ -1432,17 +1432,17 @@ function renderPendingOnlineList() {
                     <span style="font-size:0.8rem; opacity:0.8;">(${metodoLabel})</span>
                 </div>
                 <span class="online-booking-meta">
-                    <strong>${b.cancha}</strong> | ${formatDateSpanish(b.fecha)} | <strong>${b.horaInicio} a ${endTime} (${b.duracionHoras}h)</strong> | 📞 ${b.telefono || 'Sin tel'}
+                    <strong>${b.cancha}</strong> | ${formatDateSpanish(b.fecha)} | <strong>${b.horaInicio} a ${endTime} (${b.duracionHoras}h)</strong> | ðŸ“ž ${b.telefono || 'Sin tel'}
                 </span>
                 <span class="online-booking-meta" style="color:var(--state-reservado); font-weight:600; margin-top:2px;">
-                    ⏳ Tiempo restante de Hold: ${minRem}:${secRem.toString().padStart(2, '0')}
+                    â³ Tiempo restante de Hold: ${minRem}:${secRem.toString().padStart(2, '0')}
                 </span>
             </div>
             <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                <span class="online-booking-price" style="font-size:1.1rem; font-weight:700; color:var(--accent);">Seña: ${formatCurrency(b.senaPagada)}</span>
+                <span class="online-booking-price" style="font-size:1.1rem; font-weight:700; color:var(--accent);">SeÃ±a: ${formatCurrency(b.senaPagada)}</span>
                 <div class="online-booking-actions" style="display:flex; gap:6px;">
                     <button class="btn btn-danger btn-small" onclick="cancelWebHold('${b.id}')">Liberar Turno</button>
-                    <button class="btn btn-success btn-small" style="font-weight:700; background:#16a34a; color:#fff;" onclick="approveWebHold('${b.id}')">Aprobar Seña</button>
+                    <button class="btn btn-success btn-small" style="font-weight:700; background:#16a34a; color:#fff;" onclick="approveWebHold('${b.id}')">Aprobar SeÃ±a</button>
                 </div>
             </div>
         `;
@@ -1473,7 +1473,7 @@ window.approveWebHold = async function(bookingId) {
 };
 
 window.cancelWebHold = async function(bookingId) {
-    if (confirm('¿Liberar el hold temporal inmediatamente? El cliente no podrá pagar.')) {
+    if (confirm('Â¿Liberar el hold temporal inmediatamente? El cliente no podrÃ¡ pagar.')) {
         try {
             const res = await fetch(`/api/reservas/${bookingId}`, { method: 'DELETE' });
             if (res.ok) {
@@ -1541,14 +1541,14 @@ function renderReports() {
         }
     }
 
-    // Rellenar Auditoría
+    // Rellenar AuditorÃ­a
     const auditTbody = document.getElementById('report-audit-tbody');
     if (auditTbody) {
         auditTbody.innerHTML = '';
         const sortedAudit = [...state.auditLog].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
         if (sortedAudit.length === 0) {
-            auditTbody.innerHTML = '<tr><td colspan="4" class="empty-list-message">Sin auditorías.</td></tr>';
+            auditTbody.innerHTML = '<tr><td colspan="4" class="empty-list-message">Sin auditorÃ­as.</td></tr>';
         } else {
             sortedAudit.forEach(log => {
                 const dateObj = new Date(log.timestamp);
@@ -1573,7 +1573,7 @@ function calculateMonthlyFinancials() {
     const select = document.getElementById('monthly-report-select');
     if (!select) return;
 
-    // Detectar qué meses poseen datos en cashflow
+    // Detectar quÃ© meses poseen datos en cashflow
     const monthsSet = new Set();
     state.cashflow.forEach(c => {
         const date = new Date(c.timestamp);
@@ -1585,7 +1585,7 @@ function calculateMonthlyFinancials() {
 
     const monthsArray = Array.from(monthsSet).sort().reverse();
     
-    // Guardar opción seleccionada antes de renderizar
+    // Guardar opciÃ³n seleccionada antes de renderizar
     const prevSelected = select.value;
     select.innerHTML = '';
 
@@ -1640,14 +1640,14 @@ function updateMonthlyReportDetails() {
         } else if (c.tipo === 'canchas') {
             // Desglosar por cancha leyendo el concepto
             const conc = c.concepto.toLowerCase();
-            if (conc.includes('padel') || conc.includes('pádel')) {
+            if (conc.includes('padel') || conc.includes('pÃ¡del')) {
                 padelTotal += c.monto;
-            } else if (conc.includes('futbol 5') || conc.includes('fútbol 5')) {
+            } else if (conc.includes('futbol 5') || conc.includes('fÃºtbol 5')) {
                 f5Total += c.monto;
-            } else if (conc.includes('futbol 8') || conc.includes('fútbol 8')) {
+            } else if (conc.includes('futbol 8') || conc.includes('fÃºtbol 8')) {
                 f8Total += c.monto;
             } else {
-                // Fallback a Pádel si no especifica (cancha_padel)
+                // Fallback a PÃ¡del si no especifica (cancha_padel)
                 padelTotal += c.monto;
             }
         }
@@ -1674,18 +1674,18 @@ function loadConfigFormValues() {
 // --- TRADUCCIONES DE CANCHA ---
 function getMappedCanchaName(canchaId) {
     const map = {
-        'cancha_f5_a': 'Cancha de Fútbol 5',
-        'cancha_f5_b': 'Cancha de Fútbol 5', // Ambas F5A y F5B usan la misma denominación en reservas.json
-        'cancha_f8': 'Cancha de Fútbol 8',
-        'cancha_padel': 'Cancha de Pádel'
+        'cancha_f5_a': 'Cancha de FÃºtbol 5',
+        'cancha_f5_b': 'Cancha de FÃºtbol 5', // Ambas F5A y F5B usan la misma denominaciÃ³n en reservas.json
+        'cancha_f8': 'Cancha de FÃºtbol 8',
+        'cancha_padel': 'Cancha de PÃ¡del'
     };
     return map[canchaId] || canchaId;
 }
 
 function getReverseMappedCanchaId(canchaName) {
-    if (canchaName.includes('Pádel') || canchaName.includes('Padel')) return 'cancha_padel';
-    if (canchaName.includes('Fútbol 8') || canchaName.includes('Futbol 8')) return 'cancha_f8';
-    // Por defecto Fútbol 5. En el calendario local buscaremos si es A o B o usaremos A por defecto.
+    if (canchaName.includes('PÃ¡del') || canchaName.includes('Padel')) return 'cancha_padel';
+    if (canchaName.includes('FÃºtbol 8') || canchaName.includes('Futbol 8')) return 'cancha_f8';
+    // Por defecto FÃºtbol 5. En el calendario local buscaremos si es A o B o usaremos A por defecto.
     return 'cancha_f5_a'; 
 }
 
@@ -1756,3 +1756,4 @@ function exportCashflowToCSV() {
     
     showToast('Descargando archivo CSV', 'success');
 }
+
