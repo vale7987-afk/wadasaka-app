@@ -24,10 +24,10 @@ async function getDb() {
         mongoClient = new MongoClient(process.env.MONGODB_URI);
         await mongoClient.connect();
         db = mongoClient.db('wadasaka');
-        console.log("ðŸš€ Conectado con Ã©xito a MongoDB Atlas");
+        console.log("ðŸš€ Conectado con éxito a MongoDB Atlas");
         return db;
     } catch (e) {
-        console.error("âš ï¸ Error de conexiÃ³n a MongoDB Atlas:", e.message);
+        console.error("âš ️ Error de conexión a MongoDB Atlas:", e.message);
         return null;
     }
 }
@@ -84,7 +84,7 @@ async function dbLoad(collectionName, defaultVal = []) {
                 return rest;
             });
         } catch (e) {
-            console.error(`âš ï¸ Error cargando Mongo (${collectionName}):`, e.message);
+            console.error(`âš ️ Error cargando Mongo (${collectionName}):`, e.message);
         }
     }
     
@@ -101,11 +101,11 @@ async function dbLoad(collectionName, defaultVal = []) {
             const data = fs.readFileSync(filePath, 'utf-8');
             return JSON.parse(data);
         } catch (e) {
-            console.error(`âš ï¸ Error leyendo archivo ${collectionName}.json:`, e.message);
+            console.error(`âš ️ Error leyendo archivo ${collectionName}.json:`, e.message);
         }
     }
 
-    // Si es Vercel y no existe en /tmp, intentar leer semilla desde el directorio raÃ­z __dirname
+    // Si es Vercel y no existe en /tmp, intentar leer semilla desde el directorio raíz __dirname
     const seedPath = path.join(__dirname, `${collectionName}.json`);
     if (fs.existsSync(seedPath)) {
         try {
@@ -129,7 +129,7 @@ async function dbSave(collectionName, data) {
             }
             return;
         } catch (e) {
-            console.error(`âš ï¸ Error guardando en Mongo (${collectionName}):`, e.message);
+            console.error(`âš ️ Error guardando en Mongo (${collectionName}):`, e.message);
         }
     }
     
@@ -138,7 +138,7 @@ async function dbSave(collectionName, data) {
         const filePath = getStoragePath(collectionName);
         fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
     } catch (e) {
-        console.error(`âš ï¸ Error escribiendo archivo local (${collectionName}):`, e.message);
+        console.error(`âš ️ Error escribiendo archivo local (${collectionName}):`, e.message);
     }
 
     // Cloud sync fallback para Vercel
@@ -160,10 +160,10 @@ async function reloadMemoryCache() {
         { id: 'p2', name: 'Agua Mineral 500ml', category: 'Bebidas', cost: 500, price: 1000, stock: 30, minStock: 6 },
         { id: 'p3', name: 'Cerveza Heineken 1L', category: 'Bebidas', cost: 1500, price: 2800, stock: 12, minStock: 4 },
         { id: 'p4', name: 'Hamburguesa Completa', category: 'Comidas', cost: 1800, price: 3500, stock: 10, minStock: 2 },
-        { id: 'p5', name: 'Tostado JamÃ³n y Queso', category: 'Comidas', cost: 1000, price: 2000, stock: 8, minStock: 3 },
-        { id: 'p6', name: 'Papas Fritas PorciÃ³n', category: 'Comidas', cost: 800, price: 1800, stock: 15, minStock: 3 },
+        { id: 'p5', name: 'Tostado Jamón y Queso', category: 'Comidas', cost: 1000, price: 2000, stock: 8, minStock: 3 },
+        { id: 'p6', name: 'Papas Fritas Porción', category: 'Comidas', cost: 800, price: 1800, stock: 15, minStock: 3 },
         { id: 'p7', name: 'Alfajor Triple', category: 'Kiosco', cost: 400, price: 800, stock: 45, minStock: 8 },
-        { id: 'p8', name: 'Papas Lays ClÃ¡sicas', category: 'Kiosco', cost: 600, price: 1200, stock: 15, minStock: 4 }
+        { id: 'p8', name: 'Papas Lays Clásicas', category: 'Kiosco', cost: 600, price: 1200, stock: 15, minStock: 4 }
     ]);
     cashflow = await dbLoad('cashflow', []);
     auditLog = await dbLoad('audit', []);
@@ -178,7 +178,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER || 'tu_email@gmail.com',
-        pass: process.env.EMAIL_PASSWORD || 'tu_contraseÃ±a'
+        pass: process.env.EMAIL_PASSWORD || 'tu_contraseña'
     }
 });
 
@@ -210,7 +210,7 @@ function esIpPrivada(ip) {
 }
 
 function accesoAdminPermitido(req) {
-    if (process.env.VERCEL) return true; // En Vercel permite acceso web al panel admin (protegido por contraseÃ±a en el frontend)
+    if (process.env.VERCEL) return true; // En Vercel permite acceso web al panel admin (protegido por contraseña en el frontend)
     const ip = normalizarIp(req.ip || req.socket.remoteAddress);
     if (ADMIN_ALLOWED_IPS.length === 0) return esIpPrivada(ip);
     return ADMIN_ALLOWED_IPS.includes(ip) || esIpPrivada(ip);
@@ -221,7 +221,7 @@ function requerirAccesoAdmin(req, res, next) {
     return res.status(403).send('Panel disponible solo desde la cancha.');
 }
 
-// Proteger endpoints crÃ­ticos administrativos
+// Proteger endpoints críticos administrativos
 app.use(['/admin.html', '/api/audit', '/api/cashflow', '/api/cron/notificacion-diaria'], requerirAccesoAdmin);
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -265,14 +265,14 @@ async function registrarEventoGoogleCalendar(reserva) {
     const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const privateKey = process.env.GOOGLE_PRIVATE_KEY;
     if (!email || !privateKey) {
-        console.log(" SincronizaciÃ³n omitida: Faltan credenciales de Google Calendar.");
+        console.log(" Sincronización omitida: Faltan credenciales de Google Calendar.");
         return;
     }
     
     const deporte = deporteDesdeCancha(reserva.cancha);
     const calendarId = deporte === 'padel' ? process.env.PADEL_CALENDAR_ID : process.env.FUTBOL_CALENDAR_ID;
     if (!calendarId) {
-        console.log(` SincronizaciÃ³n omitida: Falta Calendar ID para ${deporte}.`);
+        console.log(` Sincronización omitida: Falta Calendar ID para ${deporte}.`);
         return;
     }
     
@@ -283,7 +283,7 @@ async function registrarEventoGoogleCalendar(reserva) {
         
         const event = {
             summary: `Reserva - ${reserva.nombre} ${reserva.apellido}`,
-            description: `Cancha: ${reserva.cancha}\nTelÃ©fono: ${reserva.telefono || 'Sin especificar'}\nTotal: $${reserva.totalTurno}\nSeÃ±a: $${reserva.senaPagada}`,
+            description: `Cancha: ${reserva.cancha}\nTeléfono: ${reserva.telefono || 'Sin especificar'}\nTotal: $${reserva.totalTurno}\nSeña: $${reserva.senaPagada}`,
             start: { dateTime: startDateTime.toISOString(), timeZone: 'America/Argentina/Buenos_Aires' },
             end: { dateTime: endDateTime.toISOString(), timeZone: 'America/Argentina/Buenos_Aires' }
         };
@@ -304,14 +304,14 @@ async function registrarEventoGoogleCalendar(reserva) {
             console.error(`Error al registrar en Google Calendar: ${errText}`);
         }
     } catch (e) {
-        console.error("Error en sincronizaciÃ³n con Google Calendar:", e.message);
+        console.error("Error en sincronización con Google Calendar:", e.message);
     }
 }
 
 // Array de reservas confirmadas en memoria para verificar disponibilidad
 let reservasConfirmadas = [];
 
-// Carga reservas en memoria para verificar disponibilidad rÃ¡pida
+// Carga reservas en memoria para verificar disponibilidad rápida
 function recargarReservasConfirmadas() {
     dbLoad('reservas').then(todas => {
         reservasConfirmadas = todas
@@ -328,7 +328,7 @@ function recargarReservasConfirmadas() {
                     estado: 'CONFIRMADO'
                 }));
             });
-        console.log('ðŸ“Š Reservas confirmadas en cachÃ©:', reservasConfirmadas.length);
+        console.log('ðŸ“Š Reservas confirmadas en caché:', reservasConfirmadas.length);
     });
 }
 
@@ -496,13 +496,13 @@ async function verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloq
             const inRange = (bloqueActual >= rStart && bloqueActual < rStart + (rQtyBlocks * 0.5));
             if (!inRange) return false;
 
-            // LÃ³gica de hold temporal: si estÃ¡ pendiente, solo choca si tiene menos de 15 min
+            // Lógica de hold temporal: si está pendiente, solo choca si tiene menos de 15 min
             let holding = false;
             if (r.estado === 'CONFIRMADO') {
                 holding = true;
             } else if (r.estado === 'PENDIENTE') {
                 const msPassed = Date.now() - new Date(r.timestamp).getTime();
-                const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retenciÃ³n
+                const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
                 if (msPassed < maxHoldMs) {
                     holding = true;
                 }
@@ -510,9 +510,9 @@ async function verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloq
 
             if (!holding) return false;
 
-            // Conflictos cruzados FÃºtbol 5 vs FÃºtbol 8
-            const esFutbolNueva = cancha.includes('Futbol') || cancha.includes('FÃºtbol');
-            const esFutbolConflicto = r.cancha.includes('Futbol') || r.cancha.includes('FÃºtbol');
+            // Conflictos cruzados Fútbol 5 vs Fútbol 8
+            const esFutbolNueva = cancha.includes('Futbol') || cancha.includes('Fútbol');
+            const esFutbolConflicto = r.cancha.includes('Futbol') || r.cancha.includes('Fútbol');
             if (esFutbolNueva && esFutbolConflicto) return true;
             
             return r.cancha === cancha;
@@ -547,13 +547,13 @@ function obtenerImportes(cancha, duracionHoras) {
     if (cLower.includes('pad')) {
         const valorHora = precios.cancha_padel || 30000;
         if (duracion === 2) {
-            total = 58000; // PromociÃ³n 2 horas de PÃ¡del
+            total = 58000; // Promoción 2 horas de Pádel
         } else if (duracion === 1.5) {
             total = 45000;
         } else {
             total = valorHora * duracion;
         }
-        sena = 10000; // SeÃ±a fija de $10.000 para PÃ¡del (1h, 1.5h y 2h)
+        sena = 10000; // Seña fija de $10.000 para Pádel (1h, 1.5h y 2h)
     } else if (cLower.includes('5')) {
         const valorHora = precios.cancha_f5 || 50000;
         total = valorHora * duracion;
@@ -614,22 +614,22 @@ async function enviarNotificaciones(reserva) {
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: reserva.email || ADMIN_EMAIL,
-            subject: 'âœ… Reserva Confirmada - Wadasaka Club',
+            subject: '✅ Reserva Confirmada - Wadasaka Club',
             html: `
-                <h2>Â¡Reserva Confirmada!</h2>
-                <p>Hola ${nombreCliente}, tu reserva en Wadasaka Club ha sido procesada con Ã©xito.</p>
+                <h2>¡Reserva Confirmada!</h2>
+                <p>Hola ${nombreCliente}, tu reserva en Wadasaka Club ha sido procesada con éxito.</p>
                 <hr>
                 <h3>Detalles de la Reserva:</h3>
                 <ul>
                     <li><strong>Cancha:</strong> ${reserva.cancha}</li>
                     <li><strong>Fecha:</strong> ${new Date(reserva.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</li>
                     <li><strong>Hora:</strong> ${reserva.horaInicio} hs</li>
-                    <li><strong>DuraciÃ³n:</strong> ${reserva.duracionHoras} horas</li>
+                    <li><strong>Duración:</strong> ${reserva.duracionHoras} horas</li>
                     <li><strong>Total del Turno:</strong> $${reserva.totalTurno.toLocaleString('es-AR')}</li>
-                    <li><strong>SeÃ±a Pagada:</strong> $${monto.toLocaleString('es-AR')}</li>
+                    <li><strong>Seña Pagada:</strong> $${monto.toLocaleString('es-AR')}</li>
                     <li><strong>Saldo a Pagar en Cancha:</strong> $${reserva.saldoPendiente.toLocaleString('es-AR')}</li>
                 </ul>
-                <p>Â¡Te esperamos en Wadasaka! ðŸŽ¾âš½</p>
+                <p>¡Te esperamos en Wadasaka! ðŸŽ¾âš½</p>
             `
         });
     } catch (error) {
@@ -645,12 +645,12 @@ async function enviarNotificaciones(reserva) {
             html: `
                 <h2>Nueva Reserva Confirmada</h2>
                 <p><strong>Cliente:</strong> ${nombreCliente}</p>
-                <p><strong>TelÃ©fono:</strong> ${reserva.telefono}</p>
+                <p><strong>Teléfono:</strong> ${reserva.telefono}</p>
                 <p><strong>Cancha:</strong> ${reserva.cancha}</p>
                 <p><strong>Fecha:</strong> ${new Date(reserva.fecha + 'T00:00:00').toLocaleDateString('es-AR')}</p>
                 <p><strong>Hora:</strong> ${reserva.horaInicio} hs (${reserva.duracionHoras}h)</p>
                 <p><strong>Total:</strong> $${reserva.totalTurno.toLocaleString('es-AR')}</p>
-                <p><strong>SeÃ±a:</strong> $${monto.toLocaleString('es-AR')} (${reserva.pagoMetodo})</p>
+                <p><strong>Seña:</strong> $${monto.toLocaleString('es-AR')} (${reserva.pagoMetodo})</p>
                 <p><strong>ID Pago/Referencia:</strong> ${reserva.mercadoPagoId || 'Manual'}</p>
             `
         });
@@ -732,12 +732,12 @@ app.get('/api/cashflow', (req, res) => {
     res.json(cashflow);
 });
 
-// Obtener auditorÃ­a
+// Obtener auditoría
 app.get('/api/audit', (req, res) => {
     res.json(auditLog);
 });
 
-// Registrar logs de auditorÃ­a
+// Registrar logs de auditoría
 app.post('/api/audit', async (req, res) => {
     const { empleado, accion, detalles } = req.body;
     auditLog.push({
@@ -754,7 +754,7 @@ app.post('/api/audit', async (req, res) => {
 app.get('/api/reservas/estado-horarios', async (req, res) => {
     const { cancha, fecha } = req.query;
     if (!cancha || !fecha) {
-        return res.status(400).json({ error: 'Faltan parÃ¡metros' });
+        return res.status(400).json({ error: 'Faltan parámetros' });
     }
 
     const todas = await dbLoad('reservas');
@@ -763,10 +763,10 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
     todas.forEach(r => {
         if (r.fecha !== fecha) return;
         
-        // Verificar si es la misma cancha o cruce fÃºtbol 5 vs fÃºtbol 8
+        // Verificar si es la misma cancha o cruce fútbol 5 vs fútbol 8
         let isMatch = (r.cancha === cancha) ||
-            (cancha.includes('FÃºtbol 8') && r.cancha.includes('FÃºtbol 5')) ||
-            (cancha.includes('FÃºtbol 5') && r.cancha.includes('FÃºtbol 8'));
+            (cancha.includes('Fútbol 8') && r.cancha.includes('Fútbol 5')) ||
+            (cancha.includes('Fútbol 5') && r.cancha.includes('Fútbol 8'));
 
         if (!isMatch) return;
 
@@ -777,7 +777,7 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
         if (r.estado === 'CONFIRMADO') {
             estadoReal = 'CONFIRMADO';
         } else if (r.estado === 'PENDIENTE') {
-            // Un hold estÃ¡ activo si tiene menos de 15 minutos
+            // Un hold está activo si tiene menos de 15 minutos
             const msPassed = Date.now() - new Date(r.timestamp).getTime();
             if (msPassed < 15 * 60 * 1000) {
                 estadoReal = 'PENDIENTE';
@@ -796,7 +796,7 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
         }
     });
 
-    // Agregar ocupaciÃ³n de calendarios externos (.ics)
+    // Agregar ocupación de calendarios externos (.ics)
     const deporte = deporteDesdeCancha(cancha);
     try {
         const bloquesExternos = await bloquesOcupadosCalendario(deporte, fecha);
@@ -818,7 +818,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
     let esSimulado = req.query.simulado === 'true' || metodoPago === 'transferencia' || metodoPago === 'efectivo';
 
     try {
-        // En la simulaciÃ³n o reservas manuales omitimos captcha si no estÃ¡ presente
+        // En la simulación o reservas manuales omitimos captcha si no está presente
         if (!esSimulado && !validarCaptcha(captchaToken, captchaAnswer)) {
             return res.status(400).json({ error: 'Captcha incorrecto. Intenta nuevamente.' });
         }
@@ -829,13 +829,13 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         // Verificar disponibilidad en tiempo real
         const disponible = await verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloques);
         if (!disponible) {
-            return res.status(409).json({ error: 'Ese horario ya no estÃ¡ disponible. Elige otro turno.' });
+            return res.status(409).json({ error: 'Ese horario ya no está disponible. Elige otro turno.' });
         }
 
         let preferenceId = null;
         let initPoint = null;
 
-        // Determinar URL pÃºblica HTTPS del servidor dinÃ¡micamente
+        // Determinar URL pública HTTPS del servidor dinámicamente
         const host = req.headers['x-forwarded-host'] || req.headers.host || 'wadasaka-app-club.vercel.app';
         let currentUrl = process.env.APP_URL;
         if (!currentUrl) {
@@ -845,7 +845,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
             currentUrl = `https://${currentUrl}`;
         }
 
-        // Intentar crear la preferencia de Mercado Pago si se eligiÃ³ MercadoPago
+        // Intentar crear la preferencia de Mercado Pago si se eligió MercadoPago
         if (!esSimulado) {
             const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
             if (token) {
@@ -854,7 +854,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                     const preference = new Preference(dynamicClient);
                     const prefBody = {
                         items: [{
-                            title: 'SeÃ±a Reserva Wadasaka Club',
+                            title: 'Seña Reserva Wadasaka Club',
                             quantity: 1,
                             unit_price: Number(price),
                             currency_id: 'ARS'
@@ -875,7 +875,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                     preferenceId = response.id;
                     initPoint = response.init_point || response.sandbox_init_point;
                 } catch (mpErr) {
-                    console.error('âš ï¸ MercadoPago no disponible, usando fallback directo:', mpErr.message || mpErr);
+                    console.error('âš ️ MercadoPago no disponible, usando fallback directo:', mpErr.message || mpErr);
                     esSimulado = true;
                 }
             } else {
@@ -892,10 +892,10 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                 : '/?pago=aprobado';
         }
         
-        // Calcular importes sugeridos y seÃ±a
+        // Calcular importes sugeridos y seña
         const importes = obtenerImportes(cancha, duracionHoras);
 
-        // Crear nueva reserva (inicia siempre en PENDIENTE hasta acreditaciÃ³n MP o aprobaciÃ³n manual)
+        // Crear nueva reserva (inicia siempre en PENDIENTE hasta acreditación MP o aprobación manual)
         const nuevaReserva = {
             id: Date.now(),
             nombre,
@@ -922,7 +922,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
         await dbSave('reservas', reservas);
         recargarReservasConfirmadas();
 
-        // Si es transferencia, notificar por email al administrador para pronta revisiÃ³n
+        // Si es transferencia, notificar por email al administrador para pronta revisión
         if (metodoPago === 'transferencia') {
             try {
                 await transporter.sendMail({
@@ -931,14 +931,14 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                     subject: `ðŸ”” Nueva Solicitud de Transferencia [${codigoReferencia}] - ${nombre} ${apellido}`,
                     html: `
                         <h2>Solicitud de Reserva por Transferencia</h2>
-                        <p><strong>CÃ³digo de Referencia:</strong> <span style="font-size:1.3em; font-weight:bold; color:#1e3a8a;">${codigoReferencia}</span></p>
+                        <p><strong>Código de Referencia:</strong> <span style="font-size:1.3em; font-weight:bold; color:#1e3a8a;">${codigoReferencia}</span></p>
                         <p><strong>Cliente:</strong> ${nombre} ${apellido} (${telefono})</p>
                         <p><strong>Cancha:</strong> ${cancha}</p>
                         <p><strong>Fecha y Hora:</strong> ${fecha} a las ${horaInicio} hs (${duracionHoras}h)</p>
-                        <p><strong>Monto SeÃ±a a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
+                        <p><strong>Monto Seña a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
                         <p><strong>Alias exclusivo para reservas:</strong> ${RESERVAS_ALIAS}</p>
                         <hr>
-                        <p>Ingresa al panel admin en <a href="${currentUrl}/admin">Wadasaka Admin</a> para confirmar la seÃ±a con 1 clic al verificar el dinero.</p>
+                        <p>Ingresa al panel admin en <a href="${currentUrl}/admin">Wadasaka Admin</a> para confirmar la seña con 1 clic al verificar el dinero.</p>
                     `
                 });
             } catch (mailErr) {
@@ -953,7 +953,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
     }
 });
 
-// ConfirmaciÃ³n manual (Aprobar Pago) de reservas pendientes
+// Confirmación manual (Aprobar Pago) de reservas pendientes
 app.post('/api/reservas/:id/confirmar', async (req, res) => {
     const { id } = req.params;
     const { empleado } = req.body;
@@ -966,15 +966,15 @@ app.post('/api/reservas/:id/confirmar', async (req, res) => {
 
     const r = reservas[index];
     r.estado = 'CONFIRMADO';
-    r.pagoMetodo = 'transferencia'; // ConfirmaciÃ³n manual de transferencia web
+    r.pagoMetodo = 'transferencia'; // Confirmación manual de transferencia web
     await dbSave('reservas', reservas);
     recargarReservasConfirmadas();
 
-    // Registrar cobro de seÃ±a en caja
+    // Registrar cobro de seña en caja
     cashflow.push({
         id: 'c_' + Date.now(),
         timestamp: new Date().toISOString(),
-        concepto: `SeÃ±a Web Confirmada: ${r.cancha} (${r.nombre} ${r.apellido})`,
+        concepto: `Seña Web Confirmada: ${r.cancha} (${r.nombre} ${r.apellido})`,
         tipo: 'canchas',
         metodo: 'transferencia',
         monto: r.senaPagada,
@@ -985,7 +985,7 @@ app.post('/api/reservas/:id/confirmar', async (req, res) => {
     // Sincronizar con Google Calendar
     await registrarEventoGoogleCalendar(r);
 
-    // Enviar correos automÃ¡ticos
+    // Enviar correos automáticos
     await enviarNotificaciones(r);
 
     res.json({ success: true });
@@ -1000,7 +1000,7 @@ app.post('/api/reservas/manual', async (req, res) => {
 
     const disponible = await verificarDisponibilidad(r.cancha, r.fecha, bloqueInicio, cantidadBloques);
     if (!disponible) {
-        return res.status(409).json({ error: 'Ese horario ya no estÃ¡ disponible' });
+        return res.status(409).json({ error: 'Ese horario ya no está disponible' });
     }
 
     const importes = obtenerImportes(r.cancha, r.duracionHoras);
@@ -1030,7 +1030,7 @@ app.post('/api/reservas/manual', async (req, res) => {
     await dbSave('reservas', reservas);
     recargarReservasConfirmadas();
 
-    // Registrar en caja si abonÃ³ seÃ±a o total
+    // Registrar en caja si abonó seña o total
     let montoCaja = 0;
     let concepto = '';
     if (r.estado === 'CONFIRMADO') {
@@ -1038,7 +1038,7 @@ app.post('/api/reservas/manual', async (req, res) => {
         concepto = `Cobro Total Manual: Cancha ${r.cancha} (${r.nombre})`;
     } else if (nueva.senaPagada > 0) {
         montoCaja = nueva.senaPagada;
-        concepto = `SeÃ±a Manual: Cancha ${r.cancha} (${r.nombre})`;
+        concepto = `Seña Manual: Cancha ${r.cancha} (${r.nombre})`;
     }
 
     if (montoCaja > 0) {
@@ -1104,11 +1104,11 @@ app.put('/api/reservas/:id', async (req, res) => {
         await registrarEventoGoogleCalendar(confirmada);
         if (confirmada.email) await enviarNotificaciones(confirmada);
     } else if (old.senaPagada === 0 && body.senaPagada > 0 && body.estado !== 'CONFIRMADO') {
-        // Cobro de seÃ±a sobre reserva pendiente
+        // Cobro de seña sobre reserva pendiente
         cashflow.push({
             id: 'c_' + Date.now(),
             timestamp: new Date().toISOString(),
-            concepto: `Cobro SeÃ±a Turno: ${body.cancha} (${body.nombre})`,
+            concepto: `Cobro Seña Turno: ${body.cancha} (${body.nombre})`,
             tipo: 'canchas',
             metodo: body.pagoMetodo,
             monto: body.senaPagada,
@@ -1188,7 +1188,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                         if (r.estado !== 'PENDIENTE') return false;
                         if (r.pagoMetodo !== 'transferencia') return false;
                         const msPassed = ahora - new Date(r.timestamp).getTime();
-                        if (msPassed > 15 * 60 * 1000) return false; // Creada en los Ãºltimos 15 min
+                        if (msPassed > 15 * 60 * 1000) return false; // Creada en los últimos 15 min
                         return Math.abs(Number(r.senaPagada) - Number(transactionAmount)) < 1;
                     });
                     confirmacionPorFallbackTransferencia = Boolean(reserva);
@@ -1210,7 +1210,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                         tipo: 'canchas',
                         metodo: reserva.pagoMetodo,
                         monto: reserva.senaPagada,
-                        empleado: 'IntegraciÃ³n AutomÃ¡tica MP'
+                        empleado: 'Integración Automática MP'
                     });
                     await dbSave('cashflow', cashflow);
 
@@ -1220,7 +1220,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                     // Enviar correos
                     await enviarNotificaciones(reserva);
                     
-                    console.log('âœ… Reserva Confirmada AutomÃ¡ticamente por Mercado Pago / Transferencia:', reserva.id);
+                    console.log('✅ Reserva Confirmada Automáticamente por Mercado Pago / Transferencia:', reserva.id);
                 }
             }
         } catch (error) {
@@ -1231,7 +1231,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
     res.status(200).send('OK');
 });
 
-// --- CRON: NOTIFICACIÃ“N DIARIA AUTOMÃTICA (23:00) ---
+// --- CRON: NOTIFICACIÃ“N DIARIA AUTOMÁTICA (23:00) ---
 app.get('/api/cron/notificacion-diaria', async (req, res) => {
     // Validar firma de cron de Vercel para seguridad
     const secret = req.headers.authorization;
@@ -1281,11 +1281,11 @@ app.get('/api/cron/notificacion-diaria', async (req, res) => {
                 <hr>
                 ${listHtml}
                 <hr>
-                <p>Generado automÃ¡ticamente por el servidor de Wadasaka Club.</p>
+                <p>Generado automáticamente por el servidor de Wadasaka Club.</p>
             `
         });
 
-        console.log(`âœ‰ï¸ Consolidado de reservas de manana (${mananaStr}) enviado a las 23hs.`);
+        console.log(`âœ‰️ Consolidado de reservas de manana (${mananaStr}) enviado a las 23hs.`);
         res.json({ success: true, count: reservasManana.length });
     } catch (e) {
         console.error("Error al procesar el reporte diario:", e.message);
@@ -1293,7 +1293,7 @@ app.get('/api/cron/notificacion-diaria', async (req, res) => {
     }
 });
 
-// Servir pÃ¡gina principal y panel admin
+// Servir página principal y panel admin
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

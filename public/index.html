@@ -293,7 +293,7 @@
 
     <!-- Alerta de temporizador de Hold de 5 minutos -->
     <div id="hold-timer" class="timer-container">
-        âš ï¸ Tu turno seleccionado estÃ¡ bloqueado temporalmente por <span id="timer-countdown">5:00</span> minutos para completar el pago.
+        âš ️ Tu turno seleccionado está bloqueado temporalmente por <span id="timer-countdown">5:00</span> minutos para completar el pago.
     </div>
 
     <form id="form-reserva">
@@ -315,9 +315,9 @@
         <div class="form-group">
             <label>Selecciona la Cancha / Deporte:</label>
             <select id="cancha" required>
-                <option value="padel">Cancha de PÃ¡del ($30.000 / h - PromociÃ³n 2h $58.000)</option>
-                <option value="futbol5">Cancha de FÃºtbol 5 ($50.000 / h)</option>
-                <option value="futbol8">Cancha de FÃºtbol 8 ($80.000 / h)</option>
+                <option value="padel">Cancha de Pádel ($30.000 / h - Promoción 2h $58.000)</option>
+                <option value="futbol5">Cancha de Fútbol 5 ($50.000 / h)</option>
+                <option value="futbol8">Cancha de Fútbol 8 ($80.000 / h)</option>
             </select>
         </div>
 
@@ -335,7 +335,7 @@
         <div class="form-group">
             <label>Selecciona el Horario (Blanco: Libre, Amarillo: En espera):</label>
             <div id="grid-horarios" class="grid-horarios">
-                <!-- Generado dinÃ¡micamente -->
+                <!-- Generado dinámicamente -->
             </div>
             <input type="hidden" id="horario" required>
         </div>
@@ -343,14 +343,14 @@
         <div class="info-box">
             <p>Rango Horario: <span id="txt-rango" style="font-weight: bold; color: #1e3a8a;">-</span></p>
             <p>Total del Turno: <span id="txt-total" class="price-highlight">$0</span></p>
-            <p>Monto de la seÃ±a a pagar ahora: <span id="txt-sena" class="price-highlight deposit-highlight">$0</span></p>
+            <p>Monto de la seña a pagar ahora: <span id="txt-sena" class="price-highlight deposit-highlight">$0</span></p>
             <p>Resta por pagar al llegar: <span id="txt-resta" class="price-highlight">$0</span></p>
         </div>
 
         <div class="form-group">
-            <label>MÃ©todo de Pago de la SeÃ±a:</label>
+            <label>Método de Pago de la Seña:</label>
             <select id="metodo-pago">
-                <option value="mercadopago">ðŸ’³ Mercado Pago (SeÃ±a Online)</option>
+                <option value="mercadopago">ðŸ’³ Mercado Pago (Seña Online)</option>
                 <option value="transferencia">ðŸ¦ Transferencia Bancaria (Alias exclusivo reservas)</option>
             </select>
         </div>
@@ -365,7 +365,7 @@
 
         <div id="status-message" class="status-message"></div>
 
-        <button type="submit" class="btn-pay" id="btn-pay">Confirmar y Pagar SeÃ±a con Mercado Pago</button>
+        <button type="submit" class="btn-pay" id="btn-pay">Confirmar y Pagar Seña con Mercado Pago</button>
     </form>
 </div>
 
@@ -429,8 +429,8 @@
         if (dep === 'padel') {
             let total = 30000 * tiempo;
             if (tiempo === 1.5) total = 45000;
-            if (tiempo === 2) total = 58000; // PromociÃ³n 2 horas de PÃ¡del
-            return { total, sena: 10000 }; // SeÃ±a fija de $10.000 para PÃ¡del (1h, 1.5h y 2h)
+            if (tiempo === 2) total = 58000; // Promoción 2 horas de Pádel
+            return { total, sena: 10000 }; // Seña fija de $10.000 para Pádel (1h, 1.5h y 2h)
         }
 
         if (dep === 'futbol5') {
@@ -494,9 +494,9 @@
 
     // Traduce el valor select del deporte a lo que el backend usa en reservas.json
     function getMappedCanchaName(deporteValue) {
-        if (deporteValue === 'padel') return 'Cancha de PÃ¡del';
-        if (deporteValue === 'futbol5') return 'Cancha de FÃºtbol 5';
-        return 'Cancha de FÃºtbol 8';
+        if (deporteValue === 'padel') return 'Cancha de Pádel';
+        if (deporteValue === 'futbol5') return 'Cancha de Fútbol 5';
+        return 'Cancha de Fútbol 8';
     }
 
     let ultimoDeporteCargado = '';
@@ -506,7 +506,7 @@
         const duracionActual = parseFloat(sDuracion.value) || 1;
         const horarioSeleccionadoPrevio = inputHorario.value;
 
-        // Solo reconstruir opciones de duraciÃ³n si cambiÃ³ la cancha seleccionada para evitar parpadeo del select
+        // Solo reconstruir opciones de duración si cambió la cancha seleccionada para evitar parpadeo del select
         if (dep !== ultimoDeporteCargado) {
             ultimoDeporteCargado = dep;
             sDuracion.innerHTML = '';
@@ -536,7 +536,7 @@
             }
         }
 
-        // Consultar ocupaciÃ³n al servidor en tiempo real
+        // Consultar ocupación al servidor en tiempo real
         let ocupados = [];
         try {
             const canchaName = getMappedCanchaName(dep);
@@ -552,7 +552,7 @@
         let seleccionValidaAun = false;
         const fragment = document.createDocumentFragment();
 
-        // Renderizar botones en fragmento atÃ³mico
+        // Renderizar botones en fragmento atómico
         horasPosibles.forEach(hora => {
             const startBloque = timeToMinutes(hora) / 60;
             const cantBloques = duracionSeleccionada * 2;
@@ -560,7 +560,7 @@
             // Verificar si el bloque cabe sin pasarse de las 24 hs
             if (startBloque + duracionSeleccionada > 24) return;
 
-            // Si la fecha seleccionada es HOY, ignorar horarios cuya hora de inicio ya transcurriÃ³
+            // Si la fecha seleccionada es HOY, ignorar horarios cuya hora de inicio ya transcurrió
             const esHoy = (inputFecha.value === getFechaHoyLocal());
             if (esHoy) {
                 const ahora = new Date();
@@ -588,7 +588,7 @@
                 }
             }
 
-            // Omitir completamente los horarios superpuestos por la duraciÃ³n solicitada por el cliente
+            // Omitir completamente los horarios superpuestos por la duración solicitada por el cliente
             if (estadoChoque && !esInicioExacto) {
                 return;
             }
@@ -626,7 +626,7 @@
             fragment.appendChild(btn);
         });
 
-        // Actualizar grid de manera atÃ³mica sin salto visual ni movimiento de scroll
+        // Actualizar grid de manera atómica sin salto visual ni movimiento de scroll
         gridHorarios.replaceChildren(fragment);
 
         if (!seleccionValidaAun && horarioSeleccionadoPrevio) {
@@ -688,17 +688,17 @@
         const estadoPago = params.get('pago');
 
         if (estadoPago === 'aprobado') {
-            mostrarMensaje('success', 'âœ… Â¡Reserva Registrada y Confirmada! Tu turno ha sido agendado con Ã©xito.');
+            mostrarMensaje('success', '✅ ¡Reserva Registrada y Confirmada! Tu turno ha sido agendado con éxito.');
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'transferencia') {
             const refCode = params.get('ref') || 'WADA-1234';
-            const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seÃ±a';
-            mostrarMensaje('success', `ðŸ¦ Â¡Reserva Solicitada con Ã‰xito!\n\n1. Transfiere ${montoVal} al Alias exclusivo de reservas: ${reservasAlias}\n2. En el MOTIVO de la transferencia coloca: ${refCode}\n3. Tu turno ya estÃ¡ reservado en el sistema. Al verificar el dinero se pasarÃ¡ a confirmado de inmediato.`);
+            const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seña';
+            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} al alias exclusivo de reservas: ${reservasAlias}\n2. En el MOTIVO de la transferencia coloca: ${refCode}\n3. Tu turno ya está reservado en el sistema. Al verificar el dinero se pasará a confirmado de inmediato.`);
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {
-            mostrarMensaje('warning', 'â³ El pago quedÃ³ pendiente. Se confirmarÃ¡ de forma automÃ¡tica al acreditarse.');
+            mostrarMensaje('warning', 'â³ El pago quedó pendiente. Se confirmará de forma automática al acreditarse.');
         } else if (estadoPago === 'fallido') {
             mostrarMensaje('error', 'âŒ El pago no se pudo completar. Por favor, intenta de nuevo.');
         }
@@ -714,7 +714,7 @@
             if (sMetodoPago.value === 'transferencia') {
                 btnPay.textContent = 'Confirmar Reserva por Transferencia Bancaria';
             } else {
-                btnPay.textContent = 'Confirmar y Pagar SeÃ±a con Mercado Pago';
+                btnPay.textContent = 'Confirmar y Pagar Seña con Mercado Pago';
             }
         });
     }
@@ -773,7 +773,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: 'SeÃ±a Reserva Wadasaka Club - ' + deporte.toUpperCase(),
+                    title: 'Seña Reserva Wadasaka Club - ' + deporte.toUpperCase(),
                     price: importes.sena,
                     quantity: 1,
                     nombre,
@@ -796,7 +796,7 @@
                 try {
                     preference = JSON.parse(rawText);
                 } catch (jsonErr) {
-                    console.error("Respuesta no es un JSON vÃ¡lido:", rawText);
+                    console.error("Respuesta no es un JSON válido:", rawText);
                 }
             }
 
@@ -818,7 +818,7 @@
             await cargarCaptcha();
         } finally {
             btnPay.disabled = false;
-            btnPay.textContent = (sMetodoPago && sMetodoPago.value === 'transferencia') ? 'Confirmar Reserva por Transferencia Bancaria' : 'Confirmar y Pagar SeÃ±a con Mercado Pago';
+            btnPay.textContent = (sMetodoPago && sMetodoPago.value === 'transferencia') ? 'Confirmar Reserva por Transferencia Bancaria' : 'Confirmar y Pagar Seña con Mercado Pago';
         }
     });
 </script>
