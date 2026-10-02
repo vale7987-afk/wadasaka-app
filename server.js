@@ -928,7 +928,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                 await transporter.sendMail({
                     from: process.env.EMAIL_USER,
                     to: ADMIN_EMAIL,
-                    subject: `ðŸ”” Nueva Solicitud de Transferencia [${codigoReferencia}] - ${nombre} ${apellido}`,
+                    subject: `🔔 Nueva Solicitud de Transferencia [${codigoReferencia}] - ${nombre} ${apellido}`,
                     html: `
                         <h2>Solicitud de Reserva por Transferencia</h2>
                         <p><strong>Código de Referencia:</strong> <span style="font-size:1.3em; font-weight:bold; color:#1e3a8a;">${codigoReferencia}</span></p>
@@ -936,7 +936,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                         <p><strong>Cancha:</strong> ${cancha}</p>
                         <p><strong>Fecha y Hora:</strong> ${fecha} a las ${horaInicio} hs (${duracionHoras}h)</p>
                         <p><strong>Monto Seña a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
-                        <p><strong>Alias exclusivo para reservas:</strong> ${RESERVAS_ALIAS}</p>
+                        <p><strong>Alias para reservas:</strong> ${RESERVAS_ALIAS}</p>
                         <hr>
                         <p>Ingresa al panel admin en <a href="${currentUrl}/admin">Wadasaka Admin</a> para confirmar la seña con 1 clic al verificar el dinero.</p>
                     `
@@ -1181,7 +1181,7 @@ app.post('/api/pagos/webhook', async (req, res) => {
                 const reservas = await dbLoad('reservas');
                 let reserva = reservas.find(r => r.preferenceId && r.preferenceId === preferenceId);
                 let confirmacionPorFallbackTransferencia = false;
-                // Fallback para transferencias al alias exclusivo de reservas: mismo monto, pendiente y reciente.
+                // Fallback para transferencias al alias de reservas: mismo monto, pendiente y reciente.
                 if (!reserva) {
                     const ahora = Date.now();
                     reserva = reservas.find(r => {

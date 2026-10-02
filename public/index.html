@@ -350,8 +350,8 @@
         <div class="form-group">
             <label>Método de Pago de la Seña:</label>
             <select id="metodo-pago">
-                <option value="mercadopago">ðŸ’³ Mercado Pago (Seña Online)</option>
-                <option value="transferencia">ðŸ¦ Transferencia Bancaria (Alias exclusivo reservas)</option>
+                <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
+                <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaya)</option>
             </select>
         </div>
 
@@ -485,7 +485,7 @@
             const config = text ? JSON.parse(text) : {};
             reservasAlias = config.reservasAlias || reservasAlias;
             if (transferOption) {
-                transferOption.textContent = `Transferencia Bancaria (Alias exclusivo reservas: ${reservasAlias})`;
+                transferOption.textContent = `Transferencia Bancaria (Alias: ${reservasAlias})`;
             }
         } catch (error) {
             console.error('No se pudo cargar la configuracion publica:', error);
@@ -694,13 +694,13 @@
         } else if (estadoPago === 'transferencia') {
             const refCode = params.get('ref') || 'WADA-1234';
             const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seña';
-            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} al alias exclusivo de reservas: ${reservasAlias}\n2. En el MOTIVO de la transferencia coloca: ${refCode}\n3. Tu turno ya está reservado en el sistema. Al verificar el dinero se pasará a confirmado de inmediato.`);
+            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} al alias de reservas: ${reservasAlias}\n2. Tu turno ya está reservado en el sistema. Al verificar el dinero se pasará a confirmado de inmediato.`);
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {
-            mostrarMensaje('warning', 'â³ El pago quedó pendiente. Se confirmará de forma automática al acreditarse.');
+            mostrarMensaje('warning', '⏳ El pago quedó pendiente. Se confirmará de forma automática al acreditarse.');
         } else if (estadoPago === 'fallido') {
-            mostrarMensaje('error', 'âŒ El pago no se pudo completar. Por favor, intenta de nuevo.');
+            mostrarMensaje('error', '❌ El pago no se pudo completar. Por favor, intenta de nuevo.');
         }
 
         if (estadoPago) {
