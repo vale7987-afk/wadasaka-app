@@ -53,6 +53,15 @@ Este documento es la **fuente de la verdad definitiva** para cualquier desarroll
 
 ---
 
+## 3.1 Verificación de Seguridad Anti-Robot (Google reCAPTCHA v2)
+
+* El formulario de reservas cuenta con integración oficial de **Google reCAPTCHA v2 (Casilla "No soy un robot")**.
+* **Frontend:** La clave del sitio (`RECAPTCHA_SITE_KEY`) se obtiene dinámicamente mediante `/api/config-publica` y el widget se monta en `#recaptcha-container` con carga asíncrona.
+* **Backend:** Al confirmar la reserva (`/api/create_preference`), el servidor verifica el token contra `https://www.google.com/recaptcha/api/siteverify` utilizando `RECAPTCHA_SECRET_KEY`.
+* Si las claves aún no han sido cargadas en el servidor, el sistema avisa de forma elegante y no bloquea el entorno de desarrollo local.
+
+---
+
 ## 4. Métodos de Pago y Carteles de Notificación
 
 ### Cartel Previo Obligatorio (Aviso de 24hs de Anticipación)

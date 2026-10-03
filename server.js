@@ -185,6 +185,8 @@ const transporter = nodemailer.createTransport({
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'wadasaka.reservas@gmail.com';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || process.env.MP_ACCESS_TOKEN || 'wadasaka-captcha-secret';
+const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || '';
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || '';
 const RESERVAS_ALIAS = process.env.RESERVAS_ALIAS || 'wadasakaya';
 const RESERVAS_TITULAR = process.env.RESERVAS_TITULAR || 'Mirta Nilda Duarte';
 const ADMIN_ALLOWED_IPS = (process.env.ADMIN_ALLOWED_IPS || '')
@@ -605,6 +607,32 @@ function validarCaptcha(token, respuesta) {
     return respuestaHash === answerHash;
 }
 
+async function verificarGoogleRecaptcha(token) {
+    if (!RECAPTCHA_SECRET_KEY) {
+        console.warn('⚠️ RECAPTCHA_SECRET_KEY no configurado en el servidor. Omitiendo validación estricta de Google.');
+        return true;
+    }
+    if (!token) return false;
+
+    try {
+        const params = new URLSearchParams();
+        params.append('secret', RECAPTCHA_SECRET_KEY);
+        params.append('response', token);
+
+        const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        });
+
+        const data = await response.json();
+        return Boolean(data && data.success);
+    } catch (error) {
+        console.error('Error al verificar Google reCAPTCHA:', error.message || error);
+        return false;
+    }
+}
+
 async function enviarNotificaciones(reserva) {
     const nombreCliente = reserva.nombre + ' ' + reserva.apellido;
     const importes = obtenerImportes(reserva.cancha, reserva.duracionHoras);
@@ -667,7 +695,11 @@ app.get('/api/captcha', (req, res) => {
 });
 
 app.get('/api/config-publica', (req, res) => {
-    res.json({ reservasAlias: RESERVAS_ALIAS, reservasTitular: RESERVAS_TITULAR });
+    res.json({
+        reservasAlias: RESERVAS_ALIAS,
+        reservasTitular: RESERVAS_TITULAR,
+        recaptchaSiteKey: RECAPTCHA_SITE_KEY
+    });
 });
 
 // Endpoint para consultar tarifas
@@ -815,13 +847,25 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
 
 // Endpoint para crear reserva (por la web)
 app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
-    const { price, nombre, apellido, telefono, email, cancha, fecha, horaInicio, duracionHoras, captchaToken, captchaAnswer, metodoPago, titularTransferencia } = req.body;
-    let esSimulado = req.query.simulado === 'true' || metodoPago === 'transferencia' || metodoPago === 'efectivo';
+    const { price, nombre, apellido, telefono, email, cancha, fecha, horaInicio, duracionHoras, captchaToken, captchaAnswer, recaptchaToken, metodoPago, titularTransferencia } = req.body;
+    const esSimulacionAdmin = req.query.simulado === 'true';
+    let esSimulado = esSimulacionAdmin || metodoPago === 'transferencia' || metodoPago === 'efectivo';
 
     try {
-        // En la simulación o reservas manuales omitimos captcha si no está presente
-        if (!esSimulado && !validarCaptcha(captchaToken, captchaAnswer)) {
-            return res.status(400).json({ error: 'Captcha incorrecto. Intenta nuevamente.' });
+        // Validar seguridad anti-robot (omitido solo para reservas simuladas del panel admin)
+        if (!esSimulacionAdmin) {
+            if (recaptchaToken) {
+                const esValido = await verificarGoogleRecaptcha(recaptchaToken);
+                if (!esValido) {
+                    return res.status(400).json({ error: 'La verificación "No soy un robot" de Google no fue válida. Intenta nuevamente.' });
+                }
+            } else if (captchaToken && captchaAnswer) {
+                if (!validarCaptcha(captchaToken, captchaAnswer)) {
+                    return res.status(400).json({ error: 'Captcha incorrecto. Intenta nuevamente.' });
+                }
+            } else if (RECAPTCHA_SECRET_KEY) {
+                return res.status(400).json({ error: 'Por favor, completa la verificación "No soy un robot".' });
+            }
         }
 
         const bloqueInicio = calcularBloqueDesdeHora(horaInicio);

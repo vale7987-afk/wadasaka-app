@@ -281,6 +281,7 @@
             cursor: pointer;
         }
     </style>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit" async defer></script>
 </head>
 <body>
 
@@ -382,12 +383,9 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Verificacion anti-robot:</label>
-            <div class="captcha-row">
-                <div class="captcha-question" id="captcha-pregunta">Cargando...</div>
-                <input type="number" id="captcha-respuesta" placeholder="Resultado" required>
-            </div>
+        <div class="form-group" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 18px 0 22px;">
+            <label style="align-self: flex-start; margin-bottom: 8px;">Verificación anti-robot:</label>
+            <div id="recaptcha-container"></div>
         </div>
 
         <div id="status-message" class="status-message"></div>
@@ -428,9 +426,7 @@
     const tSena = document.getElementById('txt-sena');
     const tResta = document.getElementById('txt-resta');
     const tRango = document.getElementById('txt-rango');
-    const captchaPregunta = document.getElementById('captcha-pregunta');
-    const captchaRespuesta = document.getElementById('captcha-respuesta');
-    const statusMessage = document.getElementById('status-message');
+            const statusMessage = document.getElementById('status-message');
     const btnPay = document.getElementById('btn-pay');
     
     const holdTimer = document.getElementById('hold-timer');
@@ -507,16 +503,34 @@
     modalOverlay.addEventListener('click', (event) => {
         if (event.target === modalOverlay) modalOverlay.classList.remove('open');
     });
-    async function cargarCaptcha() {
-        try {
-            const response = await fetch('/api/captcha');
-            const text = await response.text();
-            const captcha = text ? JSON.parse(text) : {};
-            captchaToken = captcha.token || '';
-            captchaPregunta.textContent = (captcha.pregunta || '2 + 2') + ' = ?';
-            captchaRespuesta.value = '';
-        } catch (error) {
-            captchaPregunta.textContent = '2 + 2 = ?';
+    let recaptchaWidgetId = null;
+    let recaptchaSiteKey = '';
+
+    window.onRecaptchaLoaded = function() {
+        renderizarRecaptchaSiListo();
+    };
+
+    function renderizarRecaptchaSiListo() {
+        if (window.grecaptcha && window.grecaptcha.render && recaptchaSiteKey && recaptchaWidgetId === null) {
+            const container = document.getElementById('recaptcha-container');
+            if (container) {
+                container.innerHTML = '';
+                try {
+                    recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
+                        'sitekey': recaptchaSiteKey
+                    });
+                } catch (e) {
+                    console.error('Error renderizando reCAPTCHA:', e);
+                }
+            }
+        }
+    }
+
+    function resetearCaptcha() {
+        if (window.grecaptcha && recaptchaWidgetId !== null) {
+            try {
+                grecaptcha.reset(recaptchaWidgetId);
+            } catch (_) {}
         }
     }
     async function cargarConfigPublica() {
@@ -528,6 +542,15 @@
             reservasTitular = config.reservasTitular || reservasTitular;
             if (transferOption) {
                 transferOption.textContent = `Transferencia Bancaria (Alias: ${reservasAlias} - ${reservasTitular})`;
+            }
+            recaptchaSiteKey = config.recaptchaSiteKey || '';
+            if (recaptchaSiteKey) {
+                renderizarRecaptchaSiListo();
+            } else {
+                const container = document.getElementById('recaptcha-container');
+                if (container && recaptchaWidgetId === null) {
+                    container.innerHTML = '<div style="padding: 10px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; font-size: 13px; color: #92400e; text-align: center;">⚙️ <strong>Google reCAPTCHA pendiente de clave:</strong> Agrega <code>RECAPTCHA_SITE_KEY</code> en tu archivo .env o en Vercel para activar el widget.</div>';
+                }
             }
         } catch (error) {
             console.error('No se pudo cargar la configuracion publica:', error);
@@ -826,8 +849,7 @@
     inputFecha.value = hoy;
     inputFecha.min = hoy;
     refrescarFormulario();
-    cargarCaptcha();
-    cargarConfigPublica().then(aplicarEstadoPagoDesdeUrl);
+        cargarConfigPublica().then(aplicarEstadoPagoDesdeUrl);
 
     // Polling en tiempo real cada 4 segundos para reflejar turnos en espera (amarillo) e independizar dispositivos
     setInterval(refrescarFormulario, 4000);
@@ -864,9 +886,15 @@
             }
         }
 
-        if (!captchaRespuesta.value.trim()) {
-            mostrarMensaje('warning', 'Por favor, completa la verificación de seguridad (Captcha).');
-            captchaRespuesta.focus();
+        let tokenRecaptcha = '';
+        if (window.grecaptcha && recaptchaWidgetId !== null) {
+            try {
+                tokenRecaptcha = grecaptcha.getResponse(recaptchaWidgetId);
+            } catch (_) {}
+        }
+
+        if (recaptchaSiteKey && !tokenRecaptcha) {
+            mostrarMensaje('warning', 'Por favor, marca la casilla "No soy un robot" antes de confirmar la reserva.');
             return;
         }
 
@@ -891,8 +919,7 @@
             duracionHoras: tiempo,
             metodoPago: metodoPagoVal,
             titularTransferencia,
-            captchaToken,
-            captchaAnswer: captchaRespuesta.value
+            recaptchaToken: tokenRecaptcha
         };
 
         if (modalPoliticaOverlay) {
@@ -926,7 +953,7 @@
 
             if (!response.ok) {
                 mostrarMensaje('error', preference.error || rawText || ('Error en el servidor (' + response.status + ').'));
-                await cargarCaptcha();
+                resetearCaptcha();
                 return;
             }
 
@@ -934,12 +961,12 @@
                 window.location.href = preference.init_point;
             } else {
                 mostrarMensaje('error', preference.error || 'No se pudo generar el enlace de pago.');
-                await cargarCaptcha();
+                resetearCaptcha();
             }
         } catch (err) {
             console.error(err);
             mostrarMensaje('error', err.message || 'Error en la solicitud de reserva.');
-            await cargarCaptcha();
+            resetearCaptcha();
         } finally {
             btnPay.disabled = false;
             btnPay.textContent = (sMetodoPago && sMetodoPago.value === 'transferencia') ? 'Confirmar Reserva por Transferencia Bancaria' : 'Confirmar y Pagar Seña con Mercado Pago';
