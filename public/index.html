@@ -405,6 +405,19 @@
         </div>
     </div>
 </div>
+
+<div id="modal-politica-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-politica-title">
+    <div class="app-modal">
+        <div id="modal-politica-title" class="app-modal-header warning">Aviso Importante</div>
+        <div id="modal-politica-body" class="app-modal-body" style="font-size: 15px; font-weight: 600; color: #1e293b; text-align: center; padding: 22px 18px; line-height: 1.5;">
+            Si luego de reservar usted desea cambiar la reserva, se debe avisar con 24hs de anticipación SIN EXCEPCIÓN!
+        </div>
+        <div class="app-modal-actions" style="display: flex; gap: 12px; justify-content: flex-end; padding: 0 18px 18px;">
+            <button type="button" id="btn-politica-cancelar" class="modal-close-btn" style="background: #64748b;">Volver</button>
+            <button type="button" id="btn-politica-aceptar" class="modal-close-btn" style="background: var(--primary);">Aceptar y Continuar</button>
+        </div>
+    </div>
+</div>
 <script>
     const sCancha = document.getElementById('cancha');
     const sDuracion = document.getElementById('duracion');
@@ -742,12 +755,57 @@
     }
 
     const sMetodoPago = document.getElementById('metodo-pago');
+    const seccionTitularTransferencia = document.getElementById('seccion-titular-transferencia');
+    const campoTitularTercero = document.getElementById('campo-titular-tercero');
+    const inputTitularTercero = document.getElementById('titular-cuenta-externa');
+    const radiosOrigenCuenta = document.querySelectorAll('input[name="origen-cuenta"]');
+
+    const modalPoliticaOverlay = document.getElementById('modal-politica-overlay');
+    const btnPoliticaCancelar = document.getElementById('btn-politica-cancelar');
+    const btnPoliticaAceptar = document.getElementById('btn-politica-aceptar');
+    let reservaPendientePayload = null;
+
     if (sMetodoPago) {
         sMetodoPago.addEventListener('change', () => {
             if (sMetodoPago.value === 'transferencia') {
                 btnPay.textContent = 'Confirmar Reserva por Transferencia Bancaria';
+                if (seccionTitularTransferencia) seccionTitularTransferencia.style.display = 'block';
             } else {
                 btnPay.textContent = 'Confirmar y Pagar Seña con Mercado Pago';
+                if (seccionTitularTransferencia) seccionTitularTransferencia.style.display = 'none';
+            }
+        });
+    }
+
+    radiosOrigenCuenta.forEach(radio => {
+        radio.addEventListener('change', () => {
+            if (campoTitularTercero) {
+                campoTitularTercero.style.display = (radio.value === 'tercero' && radio.checked) ? 'block' : 'none';
+            }
+        });
+    });
+
+    if (btnPoliticaCancelar) {
+        btnPoliticaCancelar.addEventListener('click', () => {
+            if (modalPoliticaOverlay) modalPoliticaOverlay.classList.remove('open');
+            reservaPendientePayload = null;
+        });
+    }
+
+    if (btnPoliticaAceptar) {
+        btnPoliticaAceptar.addEventListener('click', () => {
+            if (modalPoliticaOverlay) modalPoliticaOverlay.classList.remove('open');
+            if (reservaPendientePayload) {
+                ejecutarProcesamientoReserva(reservaPendientePayload);
+            }
+        });
+    }
+
+    if (modalPoliticaOverlay) {
+        modalPoliticaOverlay.addEventListener('click', (event) => {
+            if (event.target === modalPoliticaOverlay) {
+                modalPoliticaOverlay.classList.remove('open');
+                reservaPendientePayload = null;
             }
         });
     }
@@ -790,6 +848,8 @@
         const tiempo = parseFloat(sDuracion.value) || 1;
         const fecha = inputFecha.value;
         const horaInicio = inputHorario.value;
+        const metodoPagoVal = sMetodoPago ? sMetodoPago.value : 'mercadopago';
+
         let titularTransferencia = nombreCompleto;
         if (metodoPagoVal === 'transferencia') {
             const origenSeleccionado = document.querySelector('input[name="origen-cuenta"]:checked')?.value || 'propia';
@@ -804,14 +864,46 @@
             }
         }
 
+        if (!captchaRespuesta.value.trim()) {
+            mostrarMensaje('warning', 'Por favor, completa la verificación de seguridad (Captcha).');
+            captchaRespuesta.focus();
+            return;
+        }
+
         const partesNombre = nombreCompleto.split(/\s+/);
         const nombre = partesNombre[0] || '';
         const apellido = partesNombre.slice(1).join(' ');
-        const metodoPagoVal = sMetodoPago ? sMetodoPago.value : 'mercadopago';
 
         const cancha = getMappedCanchaName(deporte);
         const importes = obtenerImportes();
 
+        reservaPendientePayload = {
+            title: 'Seña Reserva Wadasaka Club - ' + deporte.toUpperCase(),
+            price: importes.sena,
+            quantity: 1,
+            nombre,
+            apellido,
+            telefono,
+            email,
+            cancha,
+            fecha,
+            horaInicio,
+            duracionHoras: tiempo,
+            metodoPago: metodoPagoVal,
+            titularTransferencia,
+            captchaToken,
+            captchaAnswer: captchaRespuesta.value
+        };
+
+        if (modalPoliticaOverlay) {
+            modalPoliticaOverlay.classList.add('open');
+        } else {
+            ejecutarProcesamientoReserva(reservaPendientePayload);
+        }
+    });
+
+    async function ejecutarProcesamientoReserva(payload) {
+        if (!payload) return;
         try {
             btnPay.disabled = true;
             btnPay.textContent = 'Procesando reserva...';
@@ -819,23 +911,7 @@
             const response = await fetch('/api/create_preference', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: 'Seña Reserva Wadasaka Club - ' + deporte.toUpperCase(),
-                    price: importes.sena,
-                    quantity: 1,
-                    nombre,
-                    apellido,
-                    telefono,
-                    email,
-                    cancha,
-                    fecha,
-                    horaInicio,
-                    duracionHoras: tiempo,
-                    metodoPago: metodoPagoVal,
-                    titularTransferencia,
-                    captchaToken,
-                    captchaAnswer: captchaRespuesta.value
-                })
+                body: JSON.stringify(payload)
             });
 
             const rawText = (await response.text()).trim();
@@ -857,7 +933,7 @@
             if (preference.init_point) {
                 window.location.href = preference.init_point;
             } else {
-                mostrarMensaje('error', preference.error || 'No se pudo generar el enlace de pago con Mercado Pago.');
+                mostrarMensaje('error', preference.error || 'No se pudo generar el enlace de pago.');
                 await cargarCaptcha();
             }
         } catch (err) {
@@ -868,7 +944,7 @@
             btnPay.disabled = false;
             btnPay.textContent = (sMetodoPago && sMetodoPago.value === 'transferencia') ? 'Confirmar Reserva por Transferencia Bancaria' : 'Confirmar y Pagar Seña con Mercado Pago';
         }
-    });
+    }
 </script>
 </body>
 </html>

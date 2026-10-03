@@ -55,6 +55,11 @@ Este documento es la **fuente de la verdad definitiva** para cualquier desarroll
 
 ## 4. Métodos de Pago y Carteles de Notificación
 
+### Cartel Previo Obligatorio (Aviso de 24hs de Anticipación)
+* Al momento de presionar el botón de confirmar la reserva (sea por Mercado Pago o por Transferencia Bancaria), se activa de forma previa un cartel emergente obligatorio con el texto:
+  > **"Si luego de reservar usted desea cambiar la reserva, se debe avisar con 24hs de anticipación SIN EXCEPCIÓN!"**
+* El usuario debe hacer clic en **"Aceptar y Continuar"** para proceder con el cobro o la solicitud de transferencia.
+
 ### Opción 1: Mercado Pago (Seña Online)
 * Genera la preferencia mediante Checkout Pro con el monto exacto de la seña precargado.
 * El cliente abona dentro de Mercado Pago con dinero en cuenta, débito, tarjeta o transferencia Mercado Pago.
