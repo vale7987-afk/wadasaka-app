@@ -61,6 +61,12 @@ Este documento es la **fuente de la verdad definitiva** para cualquier desarroll
 * Confirmación 100% automática mediante Webhook.
 
 ### Opción 2: Transferencia Bancaria Directa
+* **Identificación del Titular Bancario:**
+  * Al seleccionar transferencia bancaria, el formulario consulta si la cuenta emisora es propia o de un tercero.
+  * Si transfiere otra persona (familiar, amigo, etc.), se solicita obligatoriamente el **Nombre y Apellido del Titular de la cuenta que transfiere**.
+  * Se incluye una advertencia destacada informando la importancia de escribir el nombre completo tal como figura registrado en el banco para la auto-aprobación.
+* **Auto-Aprobación Inteligente en Backend:**
+  * El servidor utiliza comparación flexible (*fuzzy matching* / tokens) para emparejar el `payer` recibido desde Mercado Pago con el titular declarado en la reserva, evitando errores por desempate o múltiples reservas simultáneas.
 * El cartel emergente (*Modal*) para transferencias debe tener exactamente el siguiente formato y redacción:
   * **Título:** `Estás a un paso de completar tu reserva`
   * **Cuerpo:**

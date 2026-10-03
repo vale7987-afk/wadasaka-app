@@ -815,7 +815,7 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
 
 // Endpoint para crear reserva (por la web)
 app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
-    const { price, nombre, apellido, telefono, email, cancha, fecha, horaInicio, duracionHoras, captchaToken, captchaAnswer, metodoPago } = req.body;
+    const { price, nombre, apellido, telefono, email, cancha, fecha, horaInicio, duracionHoras, captchaToken, captchaAnswer, metodoPago, titularTransferencia } = req.body;
     let esSimulado = req.query.simulado === 'true' || metodoPago === 'transferencia' || metodoPago === 'efectivo';
 
     try {
@@ -912,6 +912,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
             preferenceId,
             codigoReferencia,
             pagoMetodo: metodoPago || 'mercadopago',
+            titularTransferencia: (titularTransferencia || (nombre + ' ' + apellido)).trim(),
             totalTurno: importes.total,
             senaPagada: Number(price || importes.sena),
             saldoPendiente: importes.total - Number(price || importes.sena),
@@ -934,6 +935,7 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                         <h2>Solicitud de Reserva por Transferencia</h2>
                         <p><strong>Código de Referencia:</strong> <span style="font-size:1.3em; font-weight:bold; color:#1e3a8a;">${codigoReferencia}</span></p>
                         <p><strong>Cliente:</strong> ${nombre} ${apellido} (${telefono})</p>
+                        <p><strong>Titular que transfiere:</strong> ${nuevaReserva.titularTransferencia}</p>
                         <p><strong>Cancha:</strong> ${cancha}</p>
                         <p><strong>Fecha y Hora:</strong> ${fecha} a las ${horaInicio} hs (${duracionHoras}h)</p>
                         <p><strong>Monto Seña a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
@@ -1162,6 +1164,34 @@ app.get('/api/reservas/todas', async (req, res) => {
     res.json(todas);
 });
 
+
+// Función para normalizar texto y comparar nombres de titulares de forma flexible (ignora tildes, mayúsculas y tolera pequeñas variaciones)
+function normalizarTexto(str) {
+    return String(str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .trim();
+}
+
+function coincideNombreTitular(nombreGuardado, nombreBanco) {
+    if (!nombreGuardado || !nombreBanco) return false;
+    const gNorm = normalizarTexto(nombreGuardado);
+    const bNorm = normalizarTexto(nombreBanco);
+    if (!gNorm || !bNorm) return false;
+    if (gNorm === bNorm) return true;
+    if (bNorm.includes(gNorm) || gNorm.includes(bNorm)) return true;
+
+    const tokensG = gNorm.split(/\s+/).filter(w => w.length > 2);
+    const tokensB = bNorm.split(/\s+/).filter(w => w.length > 2);
+    if (tokensG.length === 0 || tokensB.length === 0) return false;
+
+    // Si coincide el apellido o nombre principal
+    const coincidencias = tokensG.filter(tg => tokensB.some(tb => tb === tg || (tg.length >= 4 && tb.startsWith(tg.slice(0, 4)))));
+    return coincidencias.length >= 1;
+}
+
 // Función centralizada para procesar y confirmar pagos de Mercado Pago / Transferencias
 async function procesarPagoAprobado(paymentData, paymentId) {
     if (!paymentData || paymentData.status !== 'approved') return null;
@@ -1185,10 +1215,9 @@ async function procesarPagoAprobado(paymentData, paymentId) {
 
     let confirmacionPorFallbackTransferencia = false;
 
-    // 3. Auto-aprobación para transferencias enviadas al alias (wadasakaya / Mirta Nilda Duarte)
+    // 3. Auto-aprobación inteligente para transferencias bancarias enviadas al alias (wadasakaya)
     if (!reserva) {
         const ahora = Date.now();
-        // Buscar reservas pendientes creadas en los últimos 30 minutos que coincidan con el monto transferido
         const candidatos = reservas.filter(r => {
             if (r.estado !== 'PENDIENTE') return false;
             const msPassed = ahora - new Date(r.timestamp).getTime();
@@ -1197,9 +1226,27 @@ async function procesarPagoAprobado(paymentData, paymentId) {
         });
 
         if (candidatos.length > 0) {
-            // Priorizar reservas marcadas como transferencia
-            reserva = candidatos.find(r => r.pagoMetodo === 'transferencia') || candidatos[0];
-            confirmacionPorFallbackTransferencia = true;
+            const payerFullName = `${paymentData.payer?.first_name || ''} ${paymentData.payer?.last_name || ''}`.trim();
+
+            // Prioridad 1: Buscar coincidencia por nombre y apellido del titular que transfirió
+            const matchPorNombre = candidatos.find(c => {
+                const titularEsperado = c.titularTransferencia || `${c.nombre} ${c.apellido}`;
+                return coincideNombreTitular(titularEsperado, payerFullName);
+            });
+
+            if (matchPorNombre) {
+                reserva = matchPorNombre;
+                confirmacionPorFallbackTransferencia = true;
+                console.log('🎯 Coincidencia exacta/flexible de titular bancario encontrada:', payerFullName, '->', reserva.titularTransferencia || reserva.nombre);
+            } else if (candidatos.length === 1) {
+                // Si solo hay un único candidato pendiente por ese monto exacto en la ventana de tiempo, se auto-aprueba
+                reserva = candidatos[0];
+                confirmacionPorFallbackTransferencia = true;
+            } else {
+                // Si hay múltiples pendientes por el mismo monto, priorizar el método transferencia
+                reserva = candidatos.find(c => c.pagoMetodo === 'transferencia') || candidatos[0];
+                confirmacionPorFallbackTransferencia = true;
+            }
         }
     }
 

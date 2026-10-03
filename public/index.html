@@ -345,12 +345,41 @@
             <p>Resta por pagar al llegar: <span id="txt-resta" class="price-highlight">$0</span></p>
         </div>
 
-        <div class="form-group">
+                <div class="form-group">
             <label>Método de Pago de la Seña:</label>
             <select id="metodo-pago">
                 <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
                 <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaya - Mirta Nilda Duarte)</option>
             </select>
+        </div>
+
+        <!-- Sección Condicional: Titular de la cuenta que transfiere -->
+        <div id="seccion-titular-transferencia" style="display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <label style="font-weight: 700; color: #1e3a8a; margin-bottom: 8px; display: block;">
+                ¿La cuenta bancaria desde donde transfieres está a tu nombre?
+            </label>
+            <div style="display: flex; gap: 20px; margin-bottom: 12px; flex-wrap: wrap;">
+                <label style="font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 15px;">
+                    <input type="radio" name="origen-cuenta" value="propia" checked style="width: auto; cursor: pointer;"> Sí, la cuenta está a mi nombre
+                </label>
+                <label style="font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 15px;">
+                    <input type="radio" name="origen-cuenta" value="tercero" style="width: auto; cursor: pointer;"> No, transfiere otra persona
+                </label>
+            </div>
+
+            <div id="campo-titular-tercero" style="display: none; margin-top: 12px;">
+                <label for="titular-cuenta-externa" style="font-size: 14px; font-weight: 700; color: #1f2937; margin-bottom: 6px; display: block;">
+                    Nombre y Apellido del Titular de la cuenta que transfiere:
+                </label>
+                <input type="text" id="titular-cuenta-externa" placeholder="Ej: Roberto Carlos Gómez">
+
+                <div style="margin-top: 12px; background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px 14px; border-radius: 6px; font-size: 13.5px; color: #92400e; line-height: 1.45;">
+                    <div style="font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                        ⚠️ ATENCIÓN IMPORTANTE:
+                    </div>
+                    Por favor, escribe el <strong>Nombre y Apellido completo</strong> tal como figura registrado en la cuenta bancaria de quien realiza la transferencia (sin apodos ni abreviaciones). Esto es indispensable para que el sistema identifique el pago automáticamente y confirme tu turno en segundos.
+                </div>
+            </div>
         </div>
 
         <div class="form-group">
@@ -761,6 +790,20 @@
         const tiempo = parseFloat(sDuracion.value) || 1;
         const fecha = inputFecha.value;
         const horaInicio = inputHorario.value;
+        let titularTransferencia = nombreCompleto;
+        if (metodoPagoVal === 'transferencia') {
+            const origenSeleccionado = document.querySelector('input[name="origen-cuenta"]:checked')?.value || 'propia';
+            if (origenSeleccionado === 'tercero') {
+                const nombreTercero = inputTitularTercero ? inputTitularTercero.value.trim() : '';
+                if (!nombreTercero) {
+                    mostrarMensaje('warning', 'Por favor, ingresa el Nombre y Apellido del titular de la cuenta bancaria desde donde se realizará la transferencia.');
+                    if (inputTitularTercero) inputTitularTercero.focus();
+                    return;
+                }
+                titularTransferencia = nombreTercero;
+            }
+        }
+
         const partesNombre = nombreCompleto.split(/\s+/);
         const nombre = partesNombre[0] || '';
         const apellido = partesNombre.slice(1).join(' ');
@@ -789,6 +832,7 @@
                     horaInicio,
                     duracionHoras: tiempo,
                     metodoPago: metodoPagoVal,
+                    titularTransferencia,
                     captchaToken,
                     captchaAnswer: captchaRespuesta.value
                 })
