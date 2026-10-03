@@ -104,14 +104,33 @@ async function fetchPrices() {
     }
 }
 
+let knownConfirmedIds = new Set();
+let isFirstLoadBookings = true;
+
 async function fetchBookings() {
     fetch('/api/pagos/sincronizar').catch(() => {});
     const res = await fetch('/api/reservas/todas');
     if (res.ok) {
         const all = await res.json();
         
-        // Filtrar reservas locales
+        // Filtrar reservas confirmadas
         state.bookings = all.filter(r => r.estado === 'CONFIRMADO');
+
+        // Notificación en vivo en el panel de administración
+        if (!isFirstLoadBookings) {
+            state.bookings.forEach(b => {
+                if (!knownConfirmedIds.has(b.id)) {
+                    showToast(`🔔 ¡Nueva Reserva Confirmada! ${b.nombre} ${b.apellido} - ${b.cancha} (${b.horaInicio} hs)`, 'success');
+                    if (window.Notification && Notification.permission === 'granted') {
+                        new Notification('Wadasaka Club - Nueva Reserva', {
+                            body: `${b.nombre} ${b.apellido} - ${b.cancha} (${b.fecha} a las ${b.horaInicio} hs)`
+                        });
+                    }
+                }
+            });
+        }
+        knownConfirmedIds = new Set(state.bookings.map(b => b.id));
+        isFirstLoadBookings = false;
         
         // Filtrar reservas que están PENDIENTES (por transferencia o hold) dentro de los 15 min de retención
         state.pendingOnline = all.filter(r => {

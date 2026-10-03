@@ -449,11 +449,11 @@
         return 'Aviso';
     }
 
-    function mostrarMensaje(tipo, texto) {
+    function mostrarMensaje(tipo, texto, customTitulo = null) {
         statusMessage.className = 'status-message ' + tipo;
         statusMessage.textContent = texto;
         modalTitle.className = 'app-modal-header ' + tipo;
-        modalTitle.textContent = tituloModal(tipo);
+        modalTitle.textContent = customTitulo || tituloModal(tipo);
         modalBody.textContent = texto;
         modalOverlay.classList.add('open');
     }
@@ -696,9 +696,12 @@
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'transferencia') {
-            const refCode = params.get('ref') || 'WADA-1234';
             const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seña';
-            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} a la siguiente cuenta:\n   • Alias: ${reservasAlias}\n   • Titular: ${reservasTitular}\n\n2. Tu turno ya está reservado en el sistema. Al ingresar la transferencia se confirmará automáticamente.`);
+            mostrarMensaje(
+                'success',
+                `Transfiere ${montoVal} a la siguiente cuenta:\n• Alias: ${reservasAlias}\n• Titular: ${reservasTitular}\n\nTu reserva se confirmará automáticamente cuando se acredite el pago.`,
+                'Estás a un paso de completar tu reserva'
+            );
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {

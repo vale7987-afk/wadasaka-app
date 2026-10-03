@@ -182,7 +182,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@wadasaka.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'wadasaka.reservas@gmail.com';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || process.env.MP_ACCESS_TOKEN || 'wadasaka-captcha-secret';
 const RESERVAS_ALIAS = process.env.RESERVAS_ALIAS || 'wadasakaya';
