@@ -43,9 +43,10 @@ Este documento es la **fuente de la verdad definitiva** para cualquier desarroll
 1. **Tiempo de Hold (Retención temporal):**
    * Toda reserva web que inicia el proceso de pago queda en estado `PENDIENTE` durante una ventana exacta de **10 minutos**.
    * Durante esos 10 minutos, el horario queda bloqueado en color **Amarillo (`En espera`)** para evitar que otro usuario tome el mismo turno.
-2. **Superposición de Horarios:**
-   * Los horarios ocupados o superpuestos por la duración solicitada (ej. si reservan 1.5h a las 18:00, las 18:30 y 19:00 no deben quedar disponibles) se **omiten de la cuadrícula** para evitar confusiones de los clientes.
-   * La leyenda visual del selector de horarios debe indicar únicamente: `(Blanco: Libre, Amarillo: En espera)`. No se muestra "Gris: Ocupado".
+2. **Superposición y Ocultamiento de Horarios:**
+   * **Los horarios ya ocupados y confirmados (con seña abonada) desaparecen por completo de la cuadrícula.** El cliente solo ve los horarios disponibles en blanco y los turnos en proceso de pago en amarillo.
+   * Los horarios superpuestos por la duración solicitada (ej. si reservan 1.5h a las 18:00, las 18:30 y 19:00 no deben quedar disponibles) también se omiten automáticamente.
+   * La leyenda visual del selector de horarios indica únicamente: `(Blanco: Libre, Amarillo: En espera)`. No se muestran botones grises de ocupado.
 3. **Filtro del Día Actual:**
    * La fecha de hoy debe estar disponible para alquilar hasta el último turno del día (23:30 hs).
    * Solo se filtran/ocultan los horarios de hoy cuya hora de inicio ya haya transcurrido en tiempo real.

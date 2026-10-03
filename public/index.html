@@ -588,8 +588,13 @@
                 }
             }
 
-            // Omitir completamente los horarios superpuestos por la duración solicitada por el cliente
-            if (estadoChoque && !esInicioExacto) {
+                        // Si el horario choca con una reserva CONFIRMADA (o superpuesta por ella), desaparece por completo
+            if (estadoChoque === 'CONFIRMADO') {
+                return;
+            }
+
+            // Omitir horarios superpuestos por un hold pendiente que no sea el inicio exacto
+            if (estadoChoque === 'PENDIENTE' && !esInicioExacto) {
                 return;
             }
 
@@ -598,11 +603,7 @@
             btn.className = 'btn-bloque';
             btn.value = hora;
 
-            if (estadoChoque === 'CONFIRMADO') {
-                btn.className += ' reservado';
-                btn.textContent = `${hora} (Ocupado)`;
-                btn.disabled = true;
-            } else if (estadoChoque === 'PENDIENTE') {
+            if (estadoChoque === 'PENDIENTE') {
                 btn.className += ' hold';
                 btn.textContent = `${hora} (En espera)`;
                 btn.disabled = true;
