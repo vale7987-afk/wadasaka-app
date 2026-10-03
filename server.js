@@ -186,6 +186,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@wadasaka.com';
 const APP_URL = process.env.APP_URL || 'http://localhost:3000';
 const CAPTCHA_SECRET = process.env.CAPTCHA_SECRET || process.env.MP_ACCESS_TOKEN || 'wadasaka-captcha-secret';
 const RESERVAS_ALIAS = process.env.RESERVAS_ALIAS || 'wadasakaya';
+const RESERVAS_TITULAR = process.env.RESERVAS_TITULAR || 'Mirta Nilda Duarte';
 const ADMIN_ALLOWED_IPS = (process.env.ADMIN_ALLOWED_IPS || '')
     .split(',')
     .map(ip => ip.trim())
@@ -666,7 +667,7 @@ app.get('/api/captcha', (req, res) => {
 });
 
 app.get('/api/config-publica', (req, res) => {
-    res.json({ reservasAlias: RESERVAS_ALIAS });
+    res.json({ reservasAlias: RESERVAS_ALIAS, reservasTitular: RESERVAS_TITULAR });
 });
 
 // Endpoint para consultar tarifas
@@ -936,7 +937,8 @@ app.post(['/create_preference', '/api/create_preference'], async (req, res) => {
                         <p><strong>Cancha:</strong> ${cancha}</p>
                         <p><strong>Fecha y Hora:</strong> ${fecha} a las ${horaInicio} hs (${duracionHoras}h)</p>
                         <p><strong>Monto Seña a Transferir:</strong> $${nuevaReserva.senaPagada.toLocaleString('es-AR')}</p>
-                        <p><strong>Alias para reservas:</strong> ${RESERVAS_ALIAS}</p>
+                        <p><strong>Alias para transferir:</strong> ${RESERVAS_ALIAS}</p>
+                        <p><strong>Titular de la cuenta:</strong> ${RESERVAS_TITULAR}</p>
                         <hr>
                         <p>Ingresa al panel admin en <a href="${currentUrl}/admin">Wadasaka Admin</a> para confirmar la seña con 1 clic al verificar el dinero.</p>
                     `
@@ -1160,74 +1162,139 @@ app.get('/api/reservas/todas', async (req, res) => {
     res.json(todas);
 });
 
-// Webhook de Mercado Pago para acreditar pagos online
-app.post('/api/pagos/webhook', async (req, res) => {
-    const { action, data } = req.body;
-    console.log('ðŸ”” Webhook Recibido:', { action, id: data?.id });
-    
-    if (action === 'payment.created' || action === 'payment.updated') {
-        try {
-            const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
-            const mpClient = new MercadoPagoConfig({ accessToken: token });
-            const payment = new Payment(mpClient);
-            const paymentData = await payment.get({ id: data.id });
-            
-            console.log('ðŸ’³ Estado de Pago Mercado Pago:', paymentData.status);
-            
-            if (paymentData.status === 'approved') {
-                const preferenceId = paymentData.preference_id;
-                const transactionAmount = paymentData.transaction_amount;
-                
-                const reservas = await dbLoad('reservas');
-                let reserva = reservas.find(r => r.preferenceId && r.preferenceId === preferenceId);
-                let confirmacionPorFallbackTransferencia = false;
-                // Fallback para transferencias al alias de reservas: mismo monto, pendiente y reciente.
-                if (!reserva) {
-                    const ahora = Date.now();
-                    reserva = reservas.find(r => {
-                        if (r.estado !== 'PENDIENTE') return false;
-                        if (r.pagoMetodo !== 'transferencia') return false;
-                        const msPassed = ahora - new Date(r.timestamp).getTime();
-                        if (msPassed > 15 * 60 * 1000) return false; // Creada en los últimos 15 min
-                        return Math.abs(Number(r.senaPagada) - Number(transactionAmount)) < 1;
-                    });
-                    confirmacionPorFallbackTransferencia = Boolean(reserva);
-                }
-                
-                if (reserva && reserva.estado !== 'CONFIRMADO') {
-                    reserva.estado = 'CONFIRMADO';
-                    reserva.mercadoPagoId = data.id;
-                    reserva.pagoMetodo = confirmacionPorFallbackTransferencia ? 'transferencia' : (reserva.pagoMetodo || 'mercadopago');
-                    
-                    await dbSave('reservas', reservas);
-                    recargarReservasConfirmadas();
+// Función centralizada para procesar y confirmar pagos de Mercado Pago / Transferencias
+async function procesarPagoAprobado(paymentData, paymentId) {
+    if (!paymentData || paymentData.status !== 'approved') return null;
 
-                    // Registrar en Libro Diario
-                    cashflow.push({
-                        id: 'c_' + Date.now(),
-                        timestamp: new Date().toISOString(),
-                        concepto: `Seña Aprobada Auto (${reserva.pagoMetodo}): ${reserva.cancha} (${reserva.nombre})`,
-                        tipo: 'canchas',
-                        metodo: reserva.pagoMetodo,
-                        monto: reserva.senaPagada,
-                        empleado: 'Integración Automática MP'
-                    });
-                    await dbSave('cashflow', cashflow);
+    const preferenceId = paymentData.preference_id;
+    const transactionAmount = Number(paymentData.transaction_amount || 0);
+    const externalRef = paymentData.external_reference;
 
-                    // Sincronizar Google Calendar
-                    await registrarEventoGoogleCalendar(reserva);
+    const reservas = await dbLoad('reservas');
+    let reserva = null;
 
-                    // Enviar correos
-                    await enviarNotificaciones(reserva);
-                    
-                    console.log('✅ Reserva Confirmada Automáticamente por Mercado Pago / Transferencia:', reserva.id);
-                }
-            }
-        } catch (error) {
-            console.error('âŒ Error webhook Mercado Pago:', error.message);
+    // 1. Buscar por preference_id de Mercado Pago
+    if (preferenceId) {
+        reserva = reservas.find(r => r.preferenceId && r.preferenceId === preferenceId);
+    }
+
+    // 2. Buscar por external_reference (código WADA-XXXX)
+    if (!reserva && externalRef) {
+        reserva = reservas.find(r => r.codigoReferencia && r.codigoReferencia === externalRef && r.estado === 'PENDIENTE');
+    }
+
+    let confirmacionPorFallbackTransferencia = false;
+
+    // 3. Auto-aprobación para transferencias enviadas al alias (wadasakaya / Mirta Nilda Duarte)
+    if (!reserva) {
+        const ahora = Date.now();
+        // Buscar reservas pendientes creadas en los últimos 30 minutos que coincidan con el monto transferido
+        const candidatos = reservas.filter(r => {
+            if (r.estado !== 'PENDIENTE') return false;
+            const msPassed = ahora - new Date(r.timestamp).getTime();
+            if (msPassed > 30 * 60 * 1000) return false;
+            return Math.abs(Number(r.senaPagada) - transactionAmount) < 1;
+        });
+
+        if (candidatos.length > 0) {
+            // Priorizar reservas marcadas como transferencia
+            reserva = candidatos.find(r => r.pagoMetodo === 'transferencia') || candidatos[0];
+            confirmacionPorFallbackTransferencia = true;
         }
     }
+
+    if (reserva && reserva.estado !== 'CONFIRMADO') {
+        reserva.estado = 'CONFIRMADO';
+        reserva.mercadoPagoId = String(paymentId || paymentData.id || '');
+        if (confirmacionPorFallbackTransferencia) {
+            reserva.pagoMetodo = 'transferencia';
+        }
+
+        await dbSave('reservas', reservas);
+        recargarReservasConfirmadas();
+
+        // Registrar en Libro Diario
+        cashflow.push({
+            id: 'c_' + Date.now(),
+            timestamp: new Date().toISOString(),
+            concepto: `Seña Aprobada Auto (${reserva.pagoMetodo}): ${reserva.cancha} (${reserva.nombre})`,
+            tipo: 'canchas',
+            metodo: reserva.pagoMetodo,
+            monto: reserva.senaPagada,
+            empleado: 'Integración Automática MP / Transferencia'
+        });
+        await dbSave('cashflow', cashflow);
+
+        // Sincronizar Google Calendar
+        await registrarEventoGoogleCalendar(reserva);
+
+        // Enviar correos
+        await enviarNotificaciones(reserva);
+
+        console.log('✅ Reserva Confirmada Automáticamente por Mercado Pago / Transferencia:', reserva.id, reserva.nombre, reserva.cancha);
+        return reserva;
+    }
+
+    return null;
+}
+
+// Endpoint para sincronizar pagos recientes desde Mercado Pago
+app.get('/api/pagos/sincronizar', async (req, res) => {
+    try {
+        const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
+        if (!token) {
+            return res.json({ success: false, message: 'Sin MP_ACCESS_TOKEN' });
+        }
+
+        const mpClient = new MercadoPagoConfig({ accessToken: token });
+        const payment = new Payment(mpClient);
+        const searchResult = await payment.search({
+            options: {
+                sort: 'date_created',
+                criteria: 'desc',
+                limit: 10
+            }
+        });
+
+        const results = searchResult?.results || [];
+        const confirmados = [];
+
+        for (const p of results) {
+            if (p.status === 'approved') {
+                const conf = await procesarPagoAprobado(p, p.id);
+                if (conf) confirmados.push(conf.id);
+            }
+        }
+
+        res.json({ success: true, count: results.length, confirmados });
+    } catch (err) {
+        console.error('Error sincronizando pagos MP:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Webhook de Mercado Pago para acreditar pagos online y transferencias automáticas
+app.all(['/api/pagos/webhook', '/pagos/webhook'], async (req, res) => {
+    const action = req.body?.action || req.body?.type || req.query?.topic || req.query?.type || 'payment';
+    const paymentId = req.body?.data?.id || req.body?.id || req.query?.['data.id'] || req.query?.id;
     
+    console.log('🔔 Webhook Recibido:', { action, paymentId, query: req.query, body: req.body });
+
+    if (paymentId) {
+        try {
+            const token = String(process.env.MP_ACCESS_TOKEN || '').trim();
+            if (token) {
+                const mpClient = new MercadoPagoConfig({ accessToken: token });
+                const payment = new Payment(mpClient);
+                const paymentData = await payment.get({ id: String(paymentId) });
+                console.log('💳 Estado de Pago Mercado Pago:', paymentData.status, 'Monto:', paymentData.transaction_amount);
+                await procesarPagoAprobado(paymentData, paymentId);
+            }
+        } catch (error) {
+            console.error('❌ Error webhook Mercado Pago:', error.message);
+        }
+    }
+
     res.status(200).send('OK');
 });
 

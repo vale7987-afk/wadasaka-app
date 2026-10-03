@@ -351,7 +351,7 @@
             <label>Método de Pago de la Seña:</label>
             <select id="metodo-pago">
                 <option value="mercadopago">💳 Mercado Pago (Seña Online)</option>
-                <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaya)</option>
+                <option value="transferencia">🏦 Transferencia Bancaria (Alias: wadasakaya - Mirta Nilda Duarte)</option>
             </select>
         </div>
 
@@ -401,7 +401,9 @@
     const modalClose = document.getElementById('app-modal-close');
     const transferOption = document.querySelector('#metodo-pago option[value="transferencia"]');
 
-    let reservasAlias = 'alias-de-reservas';
+    let reservasAlias = 'wadasakaya';
+    let reservasTitular = 'Mirta Nilda Duarte';
+    let reservasTitular = 'Mirta Nilda Duarte';
 
     let captchaToken = '';
     let holdInterval = null;
@@ -484,8 +486,10 @@
             const text = await response.text();
             const config = text ? JSON.parse(text) : {};
             reservasAlias = config.reservasAlias || reservasAlias;
+            reservasTitular = config.reservasTitular || reservasTitular;
             if (transferOption) {
-                transferOption.textContent = `Transferencia Bancaria (Alias: ${reservasAlias})`;
+                transferOption.textContent = `Transferencia Bancaria (Alias: ${reservasAlias} - ${reservasTitular})`;
+            })`;
             }
         } catch (error) {
             console.error('No se pudo cargar la configuracion publica:', error);
@@ -694,7 +698,7 @@
         } else if (estadoPago === 'transferencia') {
             const refCode = params.get('ref') || 'WADA-1234';
             const montoVal = params.get('monto') ? ('$' + Number(params.get('monto')).toLocaleString('es-AR')) : 'de la seña';
-            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} al alias de reservas: ${reservasAlias}\n2. Tu turno ya está reservado en el sistema. Al verificar el dinero se pasará a confirmado de inmediato.`);
+            mostrarMensaje('success', `🏦 ¡Reserva Solicitada con Éxito!\n\n1. Transfiere ${montoVal} a la siguiente cuenta:\n   • Alias: ${reservasAlias}\n   • Titular: ${reservasTitular}\n\n2. Tu turno ya está reservado en el sistema. Al ingresar la transferencia se confirmará automáticamente.`);
             if (holdInterval) clearInterval(holdInterval);
             holdTimer.style.display = 'none';
         } else if (estadoPago === 'pendiente') {

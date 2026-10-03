@@ -105,6 +105,7 @@ async function fetchPrices() {
 }
 
 async function fetchBookings() {
+    fetch('/api/pagos/sincronizar').catch(() => {});
     const res = await fetch('/api/reservas/todas');
     if (res.ok) {
         const all = await res.json();
@@ -1420,7 +1421,7 @@ function renderPendingOnlineList() {
         const minRem = Math.floor(secondsRemaining / 60);
         const secRem = secondsRemaining % 60;
         const refCode = b.codigoReferencia || 'WADA-ONLINE';
-        const metodoLabel = b.pagoMetodo === 'transferencia' ? '🏦 Transferencia → alias: wadasakaya' : '💳 Mercado Pago';
+        const metodoLabel = b.pagoMetodo === 'transferencia' ? '🏦 Transferencia → Alias: wadasakaya (Mirta Nilda Duarte)' : '💳 Mercado Pago';
 
         const card = document.createElement('div');
         card.className = 'online-booking-item';
