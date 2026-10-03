@@ -41,8 +41,8 @@ Este documento es la **fuente de la verdad definitiva** para cualquier desarroll
 ## 3. Reglas de Disponibilidad, Turnos y Cuadrícula
 
 1. **Tiempo de Hold (Retención temporal):**
-   * Toda reserva web que inicia el proceso de pago queda en estado `PENDIENTE` durante una ventana exacta de **15 minutos**.
-   * Durante esos 15 minutos, el horario queda bloqueado en color **Amarillo (`En espera`)** para evitar que otro usuario tome el mismo turno.
+   * Toda reserva web que inicia el proceso de pago queda en estado `PENDIENTE` durante una ventana exacta de **10 minutos**.
+   * Durante esos 10 minutos, el horario queda bloqueado en color **Amarillo (`En espera`)** para evitar que otro usuario tome el mismo turno.
 2. **Superposición de Horarios:**
    * Los horarios ocupados o superpuestos por la duración solicitada (ej. si reservan 1.5h a las 18:00, las 18:30 y 19:00 no deben quedar disponibles) se **omiten de la cuadrícula** para evitar confusiones de los clientes.
    * La leyenda visual del selector de horarios debe indicar únicamente: `(Blanco: Libre, Amarillo: En espera)`. No se muestra "Gris: Ocupado".

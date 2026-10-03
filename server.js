@@ -503,7 +503,7 @@ async function verificarDisponibilidad(cancha, fecha, bloqueInicio, cantidadBloq
                 holding = true;
             } else if (r.estado === 'PENDIENTE') {
                 const msPassed = Date.now() - new Date(r.timestamp).getTime();
-                const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
+                const maxHoldMs = 10 * 60 * 1000; // 10 minutos de retención
                 if (msPassed < maxHoldMs) {
                     holding = true;
                 }
@@ -778,9 +778,9 @@ app.get('/api/reservas/estado-horarios', async (req, res) => {
         if (r.estado === 'CONFIRMADO') {
             estadoReal = 'CONFIRMADO';
         } else if (r.estado === 'PENDIENTE') {
-            // Un hold está activo si tiene menos de 15 minutos
+            // Un hold está activo si tiene menos de 10 minutos
             const msPassed = Date.now() - new Date(r.timestamp).getTime();
-            if (msPassed < 15 * 60 * 1000) {
+            if (msPassed < 10 * 60 * 1000) {
                 estadoReal = 'PENDIENTE';
             }
         }

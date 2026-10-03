@@ -289,9 +289,9 @@
     <div class="subtitle">Reservas Online de Canchas</div>
 
 
-    <!-- Alerta de temporizador de Hold de 5 minutos -->
+    <!-- Alerta de temporizador de Hold de 10 minutos -->
     <div id="hold-timer" class="timer-container">
-        âš ️ Tu turno seleccionado está bloqueado temporalmente por <span id="timer-countdown">5:00</span> minutos para completar el pago.
+        ⚠️ Tu turno seleccionado está bloqueado temporalmente por <span id="timer-countdown">10:00</span> minutos para completar el pago.
     </div>
 
     <form id="form-reserva">
@@ -659,14 +659,14 @@
         }
     }
 
-    // Iniciar temporizador de 5 minutos cuando seleccionan un horario
+    // Iniciar temporizador de 10 minutos cuando seleccionan un horario
     function activarHoldLocal() {
         if (holdInterval) clearInterval(holdInterval);
         
         holdTimer.style.display = 'block';
-        let segundos = 300; // 5 minutos
+        let segundos = 600; // 10 minutos
 
-        timerCountdown.textContent = "5:00";
+        timerCountdown.textContent = "10:00";
 
         holdInterval = setInterval(() => {
             segundos--;

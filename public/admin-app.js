@@ -132,11 +132,11 @@ async function fetchBookings() {
         knownConfirmedIds = new Set(state.bookings.map(b => b.id));
         isFirstLoadBookings = false;
         
-        // Filtrar reservas que están PENDIENTES (por transferencia o hold) dentro de los 15 min de retención
+        // Filtrar reservas que están PENDIENTES (por transferencia o hold) dentro de los 10 min de retención
         state.pendingOnline = all.filter(r => {
             if (r.estado !== 'PENDIENTE') return false;
             const msPassed = Date.now() - new Date(r.timestamp).getTime();
-            return msPassed < (15 * 60 * 1000);
+            return msPassed < (10 * 60 * 1000);
         });
     }
 }
@@ -1408,7 +1408,7 @@ async function simulateWebBooking(deporte) {
         });
 
         if (res.ok) {
-            showToast('Hold temporal simulado en la web (5 minutos)', 'info');
+            showToast('Hold temporal simulado en la web (10 minutos)', 'info');
             await refreshRealtimeData();
             renderApp();
         } else {
@@ -1435,7 +1435,7 @@ function renderPendingOnlineList() {
     state.pendingOnline.forEach(b => {
         const endTime = minutesToTime(timeToMinutes(b.horaInicio) + (b.duracionHoras * 60));
         const msPassed = Date.now() - new Date(b.timestamp).getTime();
-        const maxHoldMs = 15 * 60 * 1000; // 15 minutos de retención
+        const maxHoldMs = 10 * 60 * 1000; // 10 minutos de retención
         const secondsRemaining = Math.max(0, Math.floor((maxHoldMs - msPassed) / 1000));
         const minRem = Math.floor(secondsRemaining / 60);
         const secRem = secondsRemaining % 60;
